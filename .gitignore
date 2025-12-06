@@ -1,0 +1,57 @@
+# FluxFlow ComfyUI - Git Ignore
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Testing
+.coverage
+htmlcov/
+.pytest_cache/
+.tox/
+coverage.xml
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Model files (usually loaded from elsewhere)
+*.pt
+*.pth
+*.safetensors
+*.ckpt
+
+# ComfyUI outputs
+output/

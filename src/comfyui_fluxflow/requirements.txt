@@ -1,0 +1,24 @@
+# ComfyUI FluxFlow Plugin Dependencies
+
+# Core dependencies (should already be available in ComfyUI environment)
+torch>=2.0.0
+torchvision>=0.15.0
+
+# Model loading and serialization
+safetensors>=0.4.0
+
+# Text encoding
+transformers>=4.30.0
+
+# Diffusion schedulers
+diffusers>=0.27.0
+
+# Tensor operations
+einops>=0.7.0
+
+# Image processing
+Pillow>=10.0.0
+
+# Note: These dependencies are typically already installed in a ComfyUI environment.
+# If you encounter import errors, install missing packages with:
+#   pip install -r requirements.txt
