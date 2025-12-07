@@ -284,8 +284,7 @@ def create_scheduler(
 
     # Lazy load scheduler class
     scheduler_cls = _get_scheduler_class(scheduler_name + "Scheduler")
-    config_dict = SCHEDULER_DEFAULTS.get(scheduler_name, {})
-    config = config_dict.copy() if config_dict else {}
+    config: Dict[str, Any] = SCHEDULER_DEFAULTS.get(scheduler_name, {}).copy()  # type: ignore[assignment]
 
     # Override prediction type if specified
     if prediction_type is not None:
