@@ -24,7 +24,7 @@ class FlowMatchingScheduler:
     ):
         self.num_train_timesteps = num_train_timesteps
         self.prediction_type = prediction_type
-        self.timesteps = None
+        self.timesteps: Optional[torch.Tensor] = None
 
     def set_timesteps(self, num_inference_steps: int, device: Optional[torch.device] = None):
         """Set the discrete timesteps for inference."""
@@ -81,7 +81,7 @@ class EulerScheduler:
     ):
         self.num_train_timesteps = num_train_timesteps
         self.prediction_type = prediction_type
-        self.timesteps = None
+        self.timesteps: Optional[torch.Tensor] = None
 
     def set_timesteps(self, num_inference_steps: int, device: Optional[torch.device] = None):
         """Set timesteps from T to 0."""
@@ -129,7 +129,7 @@ class DDIMScheduler:
     ):
         self.num_train_timesteps = num_train_timesteps
         self.prediction_type = prediction_type
-        self.timesteps = None
+        self.timesteps: Optional[torch.Tensor] = None
 
     def set_timesteps(self, num_inference_steps: int, device: Optional[torch.device] = None):
         """Set evenly spaced timesteps."""

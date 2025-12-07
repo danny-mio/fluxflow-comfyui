@@ -9,8 +9,8 @@ from typing import Any, Dict, Optional
 
 # Lazy import schedulers to avoid dependency conflicts
 # Import only when needed to prevent version incompatibilities
-_SCHEDULER_CLASSES = {}
-_DIFFUSERS_AVAILABLE = None  # Tri-state: None=unknown, True=working, False=broken
+_SCHEDULER_CLASSES: Dict[str, Any] = {}
+_DIFFUSERS_AVAILABLE: Optional[bool] = None  # Tri-state: None=unknown, True=working, False=broken
 
 
 def _check_diffusers_available():
@@ -284,7 +284,7 @@ def create_scheduler(
 
     # Lazy load scheduler class
     scheduler_cls = _get_scheduler_class(scheduler_name + "Scheduler")
-    config = SCHEDULER_DEFAULTS.get(scheduler_name, {}).copy()
+    config = SCHEDULER_DEFAULTS.get(scheduler_name, {}).copy()  # type: ignore[union-attr]
 
     # Override prediction type if specified
     if prediction_type is not None:
