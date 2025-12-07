@@ -16,11 +16,17 @@ ComfyUI custom nodes for FluxFlow text-to-image generation.
 
 ## Installation
 
-**Note**: Package not yet published to PyPI - use symlink installation method below.
+### Method 1: PyPI (Recommended)
 
-For development installation, see [INSTALL.md](src/comfyui_fluxflow/INSTALL.md) for symlink setup instructions.
+```bash
+pip install fluxflow-comfyui
+```
 
-### Alternative: Manual Installation for ComfyUI
+**Package available on PyPI**: [fluxflow-comfyui v0.1.0](https://pypi.org/project/fluxflow-comfyui/)
+
+After installing, you'll need to symlink the package into ComfyUI's custom_nodes directory. See [INSTALL.md](src/comfyui_fluxflow/INSTALL.md) for detailed symlink setup instructions.
+
+### Method 2: Direct Installation into ComfyUI
 
 If you're using ComfyUI, you can install directly into your ComfyUI custom_nodes directory:
 
@@ -29,6 +35,14 @@ cd ComfyUI/custom_nodes
 git clone https://github.com/danny-mio/fluxflow-comfyui.git
 cd fluxflow-comfyui
 pip install -e .
+```
+
+### Method 3: Development Install
+
+```bash
+git clone https://github.com/danny-mio/fluxflow-comfyui.git
+cd fluxflow-comfyui
+pip install -e ".[dev]"
 ```
 
 ## Features
