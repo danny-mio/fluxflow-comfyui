@@ -5,7 +5,7 @@ Provides access to 12+ diffusers schedulers with sensible defaults.
 Falls back to standalone implementations if diffusers is broken.
 """
 
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, cast
 
 # Lazy import schedulers to avoid dependency conflicts
 # Import only when needed to prevent version incompatibilities
@@ -284,7 +284,7 @@ def create_scheduler(
 
     # Lazy load scheduler class
     scheduler_cls = _get_scheduler_class(scheduler_name + "Scheduler")
-    config: Dict[str, Any] = SCHEDULER_DEFAULTS.get(scheduler_name, {}).copy()  # type: ignore[assignment]
+    config = cast(Dict[str, Any], SCHEDULER_DEFAULTS.get(scheduler_name, {})).copy()
 
     # Override prediction type if specified
     if prediction_type is not None:
