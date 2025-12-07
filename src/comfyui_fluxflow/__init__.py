@@ -18,6 +18,7 @@ Nodes:
 - FluxFlowTextEncode: Encode text prompt to conditioning
 - FluxFlowSampler: Denoise latent with configurable scheduler
 """
+
 import os  # noqa: E402
 
 from .nodes.latent_ops import FluxFlowEmptyLatent, FluxFlowVAEDecode, FluxFlowVAEEncode
