@@ -62,7 +62,7 @@ class FlowMatchingScheduler:
         if t_idx == len(self.timesteps) - 1:
             return sample  # Last step
 
-        t = timestep / self.num_train_timesteps
+        # t = timestep / self.num_train_timesteps  # noqa: F841
         dt = 1.0 / len(self.timesteps)
 
         # Euler step: x_{t-dt} = x_t - dt * v_t

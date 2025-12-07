@@ -69,7 +69,7 @@ class FluxFlowSampler:
         Returns:
             (latent,) - Denoised latent packet [B, T+1, D]
         """
-        print(f"\nFluxFlow Sampler:")
+        print("\nFluxFlow Sampler:")
         print(f"  Scheduler: {scheduler}")
         print(f"  Steps: {steps}")
         print(f"  Prediction type: {prediction_type}")

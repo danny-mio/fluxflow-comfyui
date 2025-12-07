@@ -31,7 +31,7 @@ def _check_diffusers_available():
     return _DIFFUSERS_AVAILABLE
 
 
-def _get_scheduler_class(name: str):
+def _get_scheduler_class(name: str):  # noqa: C901
     """Lazy load scheduler class to avoid import errors."""
     if name in _SCHEDULER_CLASSES:
         return _SCHEDULER_CLASSES[name]

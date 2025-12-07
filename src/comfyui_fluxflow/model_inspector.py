@@ -14,7 +14,7 @@ from typing import Any, Dict
 import safetensors.torch
 
 
-def detect_fluxflow_config(checkpoint_path: str) -> Dict[str, Any]:
+def detect_fluxflow_config(checkpoint_path: str) -> Dict[str, Any]:  # noqa: C901
     """
     Auto-detect FluxFlow model configuration from safetensors checkpoint.
 

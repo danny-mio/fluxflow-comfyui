@@ -18,6 +18,7 @@ Nodes:
 - FluxFlowTextEncode: Encode text prompt to conditioning
 - FluxFlowSampler: Denoise latent with configurable scheduler
 """
+import os  # noqa: E402
 
 from .nodes.latent_ops import FluxFlowEmptyLatent, FluxFlowVAEDecode, FluxFlowVAEEncode
 from .nodes.model_loader import FluxFlowModelLoader
@@ -55,8 +56,6 @@ NODE_COLORS = {
 }
 
 # Export web directory for ComfyUI JavaScript extensions
-import os
-
 WEB_DIRECTORY = os.path.join(os.path.dirname(__file__), "web")
 
 __all__ = [
