@@ -8,7 +8,7 @@ ComfyUI custom nodes for FluxFlow text-to-image generation.
 
 **Status**: The ComfyUI nodes are fully implemented and tested, but require trained FluxFlow checkpoints to generate images.
 
-**When Available**: Trained checkpoints will be published to [MODEL_ZOO.md](../MODEL_ZOO.md) upon completion of training validation. You will then be able to load them using the FluxFlowModelLoader node.
+**When Available**: Trained checkpoints will be published to [MODEL_ZOO.md](https://github.com/danny-mio/fluxflow-core/blob/main/MODEL_ZOO.md) upon completion of training validation. You will then be able to load them using the FluxFlowModelLoader node.
 
 **For Developers**: You can use this plugin with your own trained FluxFlow checkpoints if you're conducting custom training experiments.
 
@@ -16,19 +16,9 @@ ComfyUI custom nodes for FluxFlow text-to-image generation.
 
 ## Installation
 
-### Method 1: PyPI (Recommended)
+### Production Install (ComfyUI Users)
 
-```bash
-pip install fluxflow-comfyui
-```
-
-**Package available on PyPI**: [fluxflow-comfyui v0.1.0](https://pypi.org/project/fluxflow-comfyui/)
-
-After installing, you'll need to symlink the package into ComfyUI's custom_nodes directory. See [INSTALL.md](src/comfyui_fluxflow/INSTALL.md) for detailed symlink setup instructions.
-
-### Method 2: Direct Installation into ComfyUI
-
-If you're using ComfyUI, you can install directly into your ComfyUI custom_nodes directory:
+**Recommended for ComfyUI users**: Clone directly into ComfyUI's custom_nodes directory for automatic discovery:
 
 ```bash
 cd ComfyUI/custom_nodes
@@ -37,7 +27,36 @@ cd fluxflow-comfyui
 pip install -e .
 ```
 
-### Method 3: Development Install
+This method requires no additional symlink setup.
+
+### Production Install (via PyPI)
+
+For advanced users who want to manage the package separately:
+
+```bash
+pip install fluxflow-comfyui
+```
+
+**What gets installed:**
+- `fluxflow-comfyui` - ComfyUI custom nodes for FluxFlow
+- `fluxflow` core package (automatically installed as dependency)
+- **Note**: Does NOT include training capabilities. Only inference/generation.
+
+**Package available on PyPI**: [fluxflow-comfyui v0.1.0](https://pypi.org/project/fluxflow-comfyui/)
+
+**Additional Setup Required**: You must symlink the package into ComfyUI's `custom_nodes` directory:
+
+```bash
+# Find where fluxflow-comfyui was installed
+PACKAGE_PATH=$(python -c "import comfyui_fluxflow; print(comfyui_fluxflow.__path__[0])")
+
+# Create symlink in ComfyUI's custom_nodes directory
+ln -s "$PACKAGE_PATH" ~/ComfyUI/custom_nodes/comfyui_fluxflow
+```
+
+Adjust the `~/ComfyUI` path to match your ComfyUI installation location.
+
+### Development Install
 
 ```bash
 git clone https://github.com/danny-mio/fluxflow-comfyui.git
