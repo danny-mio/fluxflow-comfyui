@@ -182,9 +182,9 @@ class DPMPlusPlusKarrasScheduler:
     ):
         self.num_train_timesteps = num_train_timesteps
         self.prediction_type = prediction_type
-        self.timesteps = None
-        self.sigmas = None
-        self.prev_sample = None
+        self.timesteps: Optional[torch.Tensor] = None
+        self.sigmas: Optional[torch.Tensor] = None
+        self.prev_sample: Optional[torch.Tensor] = None
 
     def _karras_sigmas(self, num_inference_steps: int, device: Optional[torch.device] = None):
         """Generate Karras noise schedule."""
