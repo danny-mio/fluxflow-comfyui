@@ -203,7 +203,6 @@ SCHEDULER_DEFAULTS = {
         # Note: timestep_spacing not supported in all diffusers versions
     },
     "DPMSolverSDE": {
-        "solver_order": 2,
         "prediction_type": "v_prediction",
         "noise_sampler_seed": 0,
     },
