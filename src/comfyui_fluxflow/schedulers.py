@@ -5,12 +5,12 @@ Provides access to 12+ diffusers schedulers with sensible defaults.
 Falls back to standalone implementations if diffusers is broken.
 """
 
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, cast
 
 # Lazy import schedulers to avoid dependency conflicts
 # Import only when needed to prevent version incompatibilities
-_SCHEDULER_CLASSES = {}
-_DIFFUSERS_AVAILABLE = None  # Tri-state: None=unknown, True=working, False=broken
+_SCHEDULER_CLASSES: Dict[str, Any] = {}
+_DIFFUSERS_AVAILABLE: Optional[bool] = None  # Tri-state: None=unknown, True=working, False=broken
 
 
 def _check_diffusers_available():
@@ -31,7 +31,7 @@ def _check_diffusers_available():
     return _DIFFUSERS_AVAILABLE
 
 
-def _get_scheduler_class(name: str):
+def _get_scheduler_class(name: str):  # noqa: C901
     """Lazy load scheduler class to avoid import errors."""
     if name in _SCHEDULER_CLASSES:
         return _SCHEDULER_CLASSES[name]
@@ -284,7 +284,7 @@ def create_scheduler(
 
     # Lazy load scheduler class
     scheduler_cls = _get_scheduler_class(scheduler_name + "Scheduler")
-    config = SCHEDULER_DEFAULTS.get(scheduler_name, {}).copy()
+    config = cast(Dict[str, Any], SCHEDULER_DEFAULTS.get(scheduler_name, {})).copy()
 
     # Override prediction type if specified
     if prediction_type is not None:

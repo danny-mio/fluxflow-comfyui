@@ -1,6 +1,5 @@
 """Unit tests for model inspector (comfyui_fluxflow/model_inspector.py)."""
 
-
 import pytest
 import safetensors.torch
 import torch

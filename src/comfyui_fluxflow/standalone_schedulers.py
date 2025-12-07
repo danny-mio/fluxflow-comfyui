@@ -24,7 +24,7 @@ class FlowMatchingScheduler:
     ):
         self.num_train_timesteps = num_train_timesteps
         self.prediction_type = prediction_type
-        self.timesteps = None
+        self.timesteps: Optional[torch.Tensor] = None
 
     def set_timesteps(self, num_inference_steps: int, device: Optional[torch.device] = None):
         """Set the discrete timesteps for inference."""
@@ -62,7 +62,7 @@ class FlowMatchingScheduler:
         if t_idx == len(self.timesteps) - 1:
             return sample  # Last step
 
-        t = timestep / self.num_train_timesteps
+        # t = timestep / self.num_train_timesteps  # noqa: F841
         dt = 1.0 / len(self.timesteps)
 
         # Euler step: x_{t-dt} = x_t - dt * v_t
@@ -81,7 +81,7 @@ class EulerScheduler:
     ):
         self.num_train_timesteps = num_train_timesteps
         self.prediction_type = prediction_type
-        self.timesteps = None
+        self.timesteps: Optional[torch.Tensor] = None
 
     def set_timesteps(self, num_inference_steps: int, device: Optional[torch.device] = None):
         """Set timesteps from T to 0."""
@@ -129,7 +129,7 @@ class DDIMScheduler:
     ):
         self.num_train_timesteps = num_train_timesteps
         self.prediction_type = prediction_type
-        self.timesteps = None
+        self.timesteps: Optional[torch.Tensor] = None
 
     def set_timesteps(self, num_inference_steps: int, device: Optional[torch.device] = None):
         """Set evenly spaced timesteps."""
@@ -182,9 +182,9 @@ class DPMPlusPlusKarrasScheduler:
     ):
         self.num_train_timesteps = num_train_timesteps
         self.prediction_type = prediction_type
-        self.timesteps = None
-        self.sigmas = None
-        self.prev_sample = None
+        self.timesteps: Optional[torch.Tensor] = None
+        self.sigmas: Optional[torch.Tensor] = None
+        self.prev_sample: Optional[torch.Tensor] = None
 
     def _karras_sigmas(self, num_inference_steps: int, device: Optional[torch.device] = None):
         """Generate Karras noise schedule."""

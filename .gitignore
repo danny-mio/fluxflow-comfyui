@@ -55,3 +55,4 @@ Thumbs.db
 
 # ComfyUI outputs
 output/
+.mypy_cache/

@@ -1,6 +1,5 @@
 """Comprehensive tests for all FluxFlow ComfyUI nodes."""
 
-
 from comfyui_fluxflow import (
     NODE_CLASS_MAPPINGS,
     NODE_COLORS,
