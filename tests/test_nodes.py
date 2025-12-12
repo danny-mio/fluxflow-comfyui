@@ -17,23 +17,25 @@ class TestNodeRegistration:
     """Tests for node registration in ComfyUI."""
 
     def test_node_class_mappings_complete(self):
-        """NODE_CLASS_MAPPINGS should contain all 6 nodes."""
-        assert len(NODE_CLASS_MAPPINGS) == 6
+        """NODE_CLASS_MAPPINGS should contain all 7 nodes."""
+        assert len(NODE_CLASS_MAPPINGS) == 7
         assert "FluxFlowModelLoader" in NODE_CLASS_MAPPINGS
         assert "FluxFlowEmptyLatent" in NODE_CLASS_MAPPINGS
         assert "FluxFlowVAEEncode" in NODE_CLASS_MAPPINGS
         assert "FluxFlowVAEDecode" in NODE_CLASS_MAPPINGS
         assert "FluxFlowTextEncode" in NODE_CLASS_MAPPINGS
+        assert "FluxFlowTextEncodeNegative" in NODE_CLASS_MAPPINGS
         assert "FluxFlowSampler" in NODE_CLASS_MAPPINGS
 
     def test_node_display_name_mappings_complete(self):
         """NODE_DISPLAY_NAME_MAPPINGS should have display names for all nodes."""
-        assert len(NODE_DISPLAY_NAME_MAPPINGS) == 6
+        assert len(NODE_DISPLAY_NAME_MAPPINGS) == 7
         assert "FluxFlowModelLoader" in NODE_DISPLAY_NAME_MAPPINGS
         assert "FluxFlowEmptyLatent" in NODE_DISPLAY_NAME_MAPPINGS
         assert "FluxFlowVAEEncode" in NODE_DISPLAY_NAME_MAPPINGS
         assert "FluxFlowVAEDecode" in NODE_DISPLAY_NAME_MAPPINGS
         assert "FluxFlowTextEncode" in NODE_DISPLAY_NAME_MAPPINGS
+        assert "FluxFlowTextEncodeNegative" in NODE_DISPLAY_NAME_MAPPINGS
         assert "FluxFlowSampler" in NODE_DISPLAY_NAME_MAPPINGS
 
     def test_display_names_descriptive(self):
@@ -43,6 +45,10 @@ class TestNodeRegistration:
         assert NODE_DISPLAY_NAME_MAPPINGS["FluxFlowVAEEncode"] == "FluxFlow VAE Encode"
         assert NODE_DISPLAY_NAME_MAPPINGS["FluxFlowVAEDecode"] == "FluxFlow VAE Decode"
         assert NODE_DISPLAY_NAME_MAPPINGS["FluxFlowTextEncode"] == "FluxFlow Text Encode"
+        assert (
+            NODE_DISPLAY_NAME_MAPPINGS["FluxFlowTextEncodeNegative"]
+            == "FluxFlow Text Encode (Negative)"
+        )
         assert NODE_DISPLAY_NAME_MAPPINGS["FluxFlowSampler"] == "FluxFlow Sampler"
 
     def test_node_classes_correct(self):

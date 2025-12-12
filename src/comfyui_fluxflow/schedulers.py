@@ -296,7 +296,7 @@ def create_scheduler(
     # Add num_train_timesteps
     config["num_train_timesteps"] = num_train_timesteps
 
-    # Check if this is a standalone scheduler (they only accept num_train_timesteps and prediction_type)
+    # Check if standalone scheduler (accepts num_train_timesteps, prediction_type)
     from .standalone_schedulers import STANDALONE_SCHEDULERS
 
     if scheduler_cls in STANDALONE_SCHEDULERS.values():
