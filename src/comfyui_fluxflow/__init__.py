@@ -8,6 +8,7 @@ Features:
 - 14 scheduler support (DPM++, Euler, DDIM, LCM, etc.)
 - Full VAE encode/decode support
 - Text conditioning with DistilBERT
+- Classifier-Free Guidance (CFG) support
 - Native ComfyUI tensor format integration
 
 Nodes:
@@ -16,7 +17,8 @@ Nodes:
 - FluxFlowVAEEncode: Encode image to latent
 - FluxFlowVAEDecode: Decode latent to image
 - FluxFlowTextEncode: Encode text prompt to conditioning
-- FluxFlowSampler: Denoise latent with configurable scheduler
+- FluxFlowTextEncodeNegative: Encode negative prompt for CFG
+- FluxFlowSampler: Denoise latent with configurable scheduler and CFG
 """
 
 import os  # noqa: E402
@@ -24,7 +26,7 @@ import os  # noqa: E402
 from .nodes.latent_ops import FluxFlowEmptyLatent, FluxFlowVAEDecode, FluxFlowVAEEncode
 from .nodes.model_loader import FluxFlowModelLoader
 from .nodes.samplers import FluxFlowSampler
-from .nodes.text_encode import FluxFlowTextEncode
+from .nodes.text_encode import FluxFlowTextEncode, FluxFlowTextEncodeNegative
 
 # Node class mappings for ComfyUI
 NODE_CLASS_MAPPINGS = {
@@ -33,6 +35,7 @@ NODE_CLASS_MAPPINGS = {
     "FluxFlowVAEEncode": FluxFlowVAEEncode,
     "FluxFlowVAEDecode": FluxFlowVAEDecode,
     "FluxFlowTextEncode": FluxFlowTextEncode,
+    "FluxFlowTextEncodeNegative": FluxFlowTextEncodeNegative,
     "FluxFlowSampler": FluxFlowSampler,
 }
 
@@ -43,6 +46,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "FluxFlowVAEEncode": "FluxFlow VAE Encode",
     "FluxFlowVAEDecode": "FluxFlow VAE Decode",
     "FluxFlowTextEncode": "FluxFlow Text Encode",
+    "FluxFlowTextEncodeNegative": "FluxFlow Text Encode (Negative)",
     "FluxFlowSampler": "FluxFlow Sampler",
 }
 
@@ -68,8 +72,9 @@ __all__ = [
     "FluxFlowVAEEncode",
     "FluxFlowVAEDecode",
     "FluxFlowTextEncode",
+    "FluxFlowTextEncodeNegative",
     "FluxFlowSampler",
 ]
 
-__version__ = "0.1.0"
+__version__ = "0.3.0"
 __author__ = "Daniele Camisani"
