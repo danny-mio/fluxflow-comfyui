@@ -235,6 +235,33 @@ This is a standalone repository, independently installable via pip.
    - Dev dependencies → `optional-dependencies.dev`
 2. Document why the dependency is needed in your PR
 
+## Requesting Contributor Access
+
+### Public Contributors (No Access Needed)
+
+Anyone can contribute via pull requests! Just:
+
+1. Fork the repository
+2. Make changes in your fork
+3. Submit a pull request to the `develop` branch
+
+No special permissions needed!
+
+### Requesting Direct Repository Access
+
+If you want to contribute regularly:
+
+1. **Start by contributing** - Submit 1-3 quality PRs first
+2. **Open a discussion** at https://github.com/danny-mio/fluxflow-comfyui/discussions
+3. **Use title**: `Request: Contributor Access for [Your Name]`
+4. **Include**: GitHub username, merged PRs, contribution areas, availability, experience
+
+Repository owner reviews requests within 7 days.
+
+## Security Issues
+
+For security vulnerabilities, see [SECURITY.md](SECURITY.md).
+
 ## Getting Help
 
 - **Questions**: Open a GitHub Discussion
