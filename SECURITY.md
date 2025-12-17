@@ -156,8 +156,7 @@ We recognize security researchers who help keep FluxFlow secure:
 ## Additional Resources
 
 - [OWASP Secure Coding Practices](https://owasp.org/www-project-secure-coding-practices-quick-reference-guide/)
-- [Python Security Best Practices](https://python.readthedocs.io/en/stable/library/security_warnings.html)
-- [PyTorch Security](https://pytorch.org/docs/stable/notes/security.html)
+- [PyTorch Security](https://pytorch.org/docs/stable/community/contribution_guide.html)
 
 ---
 
