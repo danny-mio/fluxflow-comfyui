@@ -193,7 +193,7 @@ The final prediction is guided by: `v_guided = v_uncond + guidance_scale * (v_co
 ## Links
 
 - [GitHub Repository](https://github.com/danny-mio/fluxflow-comfyui)
-- [ComfyUI Documentation](https://github.com/danny-mio/fluxflow-comfyui/tree/main/comfyui_fluxflow)
+- [ComfyUI Documentation](https://github.com/danny-mio/fluxflow-comfyui/tree/main/src/comfyui_fluxflow)
 - [Core Package](https://pypi.org/project/fluxflow/)
 - [Training Package](https://pypi.org/project/fluxflow-training/)
 
