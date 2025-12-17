@@ -1,5 +1,18 @@
 # ComfyUI FluxFlow Plugin - Changelog
 
+## [0.4.0] - 2025-12-17
+
+### Changed
+- **Updated fluxflow dependency** from `>=0.3.1,<0.4.0` to `>=0.4.0,<0.5.0`
+  - Aligns with fluxflow-core v0.4.0 release
+  - Supports new versioning system and image contrast fixes
+- **Version bumped** to 0.4.0 for consistency across FluxFlow ecosystem
+
+### Notes
+- No functional changes to ComfyUI nodes
+- All features from v0.3.0 remain unchanged
+- Dependency update ensures compatibility with latest core package
+
 ## [0.1.0] - 2025-01-13
 
 ### Added
@@ -52,4 +65,3 @@
 - Reproducible generation with seed control
 - Context conditioning toggle
 - Multiple prediction types (v_prediction, epsilon, sample)
-
