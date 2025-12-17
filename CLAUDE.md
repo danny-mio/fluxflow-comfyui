@@ -36,7 +36,8 @@ pre-commit run --all-files        # Run all pre-commit hooks
 # Build
 make build                        # Build distribution package
 make clean                        # Clean build artifacts
-```text
+```
+
 **Available Makefile Targets** (run `make help` to verify):
 - `install` - Install package
 - `install-dev` - Install with dev dependencies
@@ -50,7 +51,7 @@ make clean                        # Clean build artifacts
 
 FluxFlow ComfyUI provides 6 custom nodes that integrate with ComfyUI's node graph system:
 
-```text
+```
 [FluxFlowModelLoader] → model
 [FluxFlowTextEncode] → conditioning
 [FluxFlowEmptyLatent] → latent
@@ -58,17 +59,18 @@ FluxFlow ComfyUI provides 6 custom nodes that integrate with ComfyUI's node grap
 [FluxFlowSampler] (model + conditioning + latent) → sampled_latent
 ↓
 [FluxFlowVAEDecode] (model + sampled_latent) → image
-```text
+```
+
 **Node Workflow**:
 1. Load FluxFlow checkpoint with `FluxFlowModelLoader`
-1. Encode text prompts with `FluxFlowTextEncode`
-1. Create empty latents with `FluxFlowEmptyLatent`
-1. Sample/denoise with `FluxFlowSampler` (14 scheduler options)
-1. Decode latents to images with `FluxFlowVAEDecode`
+2. Encode text prompts with `FluxFlowTextEncode`
+3. Create empty latents with `FluxFlowEmptyLatent`
+4. Sample/denoise with `FluxFlowSampler` (14 scheduler options)
+5. Decode latents to images with `FluxFlowVAEDecode`
 
 ## Directory Structure
 
-```text
+```
 fluxflow-comfyui/
 ├── src/comfyui_fluxflow/
 │   ├── __init__.py              # Package init, node registration
@@ -98,7 +100,8 @@ fluxflow-comfyui/
 ├── pyproject.toml               # Project configuration
 ├── Makefile                     # Build automation
 └── .pre-commit-config.yaml      # Pre-commit hooks
-```text
+```
+
 ## Code Conventions
 
 ### Python Version and Dependencies
@@ -129,7 +132,8 @@ from transformers import DistilBertTokenizer
 # local
 from comfyui_fluxflow.schedulers import create_scheduler
 from .utils import validate_latent_shape
-```text
+```
+
 ### Docstrings (Google-style)
 
 ```python
@@ -151,7 +155,8 @@ def node_function(arg1: str, arg2: int = 10) -> dict:
         >>> node_function("test")
         {'result': 'test'}
     """
-```text
+```
+
 ### Naming Conventions
 
 - **Functions/variables**: snake_case
@@ -169,7 +174,8 @@ if checkpoint_path is None or not checkpoint_path.strip():
 
 if not Path(checkpoint_path).exists():
     raise FileNotFoundError(f"Checkpoint not found: {checkpoint_path}")
-```text
+```
+
 ### Logging
 
 Use print statements for ComfyUI console output:
@@ -179,7 +185,8 @@ print(f"\nFluxFlow Model Loader:")
 print(f"  Checkpoint: {checkpoint_path}")
 print(f"  Device: {device}")
 print(f"  Model loaded successfully")
-```text
+```
+
 ## Testing Guidelines
 
 ### Test Structure
@@ -201,7 +208,8 @@ class TestFluxFlowNode:
         node = FluxFlowModelLoader()
         result = node.load_model(mock_checkpoint)
         assert result is not None
-```text
+```
+
 ### Test Markers
 
 - `@pytest.mark.slow` - Tests > 1s execution time
@@ -249,7 +257,8 @@ class FluxFlowNodeName:
         """Node processing logic."""
         # Implementation
         return (result,)  # Always return tuple
-```text
+```
+
 ### Custom Data Types
 
 FluxFlow defines custom types for ComfyUI:
@@ -282,7 +291,8 @@ pipeline = FluxPipeline.from_pretrained(
     device=device,
     torch_dtype=torch.float16,  # Optional
 )
-```text
+```
+
 ### Text Encoding
 
 Uses DistilBERT tokenizer and encoder:
@@ -296,7 +306,8 @@ encoder = BertTextEncoder(embed_dim=256)
 
 tokens = tokenizer(prompt, return_tensors='pt', max_length=512, truncation=True)
 embeddings = encoder(tokens['input_ids'], tokens['attention_mask'])
-```text
+```
+
 ### Scheduler Configuration
 
 14 schedulers available via `create_scheduler()`:
@@ -310,7 +321,8 @@ scheduler = create_scheduler(
     prediction_type="v_prediction",
 )
 scheduler.set_timesteps(steps=20, device=device)
-```text
+```
+
 **Available Schedulers**:
 - Euler, EulerAncestral
 - DPMSolverMultistep, DPMSolverSinglestep
@@ -340,7 +352,8 @@ latent_dim = 128
 latent = torch.randn(batch_size, tokens + 1, latent_dim)
 latent[:, -1, 0] = height  # Encode height
 latent[:, -1, 1] = width   # Encode width
-```text
+```
+
 ## ComfyUI Node Development
 
 ### Testing Nodes in ComfyUI
@@ -352,10 +365,11 @@ cd ComfyUI/custom_nodes
 ln -s /path/to/fluxflow-comfyui fluxflow-comfyui
 cd fluxflow-comfyui
 pip install -e ".[dev]"
-```text
-1. **Restart ComfyUI** to load nodes
+```
 
-1. **Verify nodes appear** in node browser under "FluxFlow" category
+2. **Restart ComfyUI** to load nodes
+
+3. **Verify nodes appear** in node browser under "FluxFlow" category
 
 ### Node Registration
 
@@ -373,7 +387,8 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "FluxFlowTextEncode": "FluxFlow Text Encode",
     # ... other nodes
 }
-```text
+```
+
 ### Web UI Extensions
 
 JavaScript extensions in `web/fluxflow_types.js` customize ComfyUI UI for FluxFlow nodes.
@@ -396,30 +411,31 @@ info = inspect_checkpoint("path/to/checkpoint.safetensors")
 print(f"Latent dim: {info['latent_dim']}")
 print(f"Embed dim: {info['embed_dim']}")
 print(f"Total params: {info['total_params']}")
-```text
+```
+
 ## Development Workflow
 
 ### Before Making Changes
 
 1. Create a feature branch
-1. Install dev dependencies: `make install-dev`
-1. Run existing tests: `make test`
+2. Install dev dependencies: `make install-dev`
+3. Run existing tests: `make test`
 
 ### Making Changes
 
 1. Write code following conventions above
-1. Add/update tests for new functionality
-1. Keep functions < 50 lines, complexity < 15
-1. Use type hints on public APIs
-1. Test nodes in ComfyUI before committing
+2. Add/update tests for new functionality
+3. Keep functions < 50 lines, complexity < 15
+4. Use type hints on public APIs
+5. Test nodes in ComfyUI before committing
 
 ### Before Committing
 
 1. Format code: `make format`
-1. Run linting: `make lint`
-1. Run tests: `make test`
-1. Pre-commit hooks: `pre-commit run --all-files`
-1. Test in actual ComfyUI instance if nodes were modified
+2. Run linting: `make lint`
+3. Run tests: `make test`
+4. Pre-commit hooks: `pre-commit run --all-files`
+5. Test in actual ComfyUI instance if nodes were modified
 
 ### Commit Messages
 
@@ -433,42 +449,42 @@ Use clear, descriptive commit messages:
 ### Adding a New Node
 
 1. Create node class in `src/comfyui_fluxflow/nodes/`
-1. Follow ComfyUI node pattern (see above)
-1. Export in `nodes/__init__.py`
-1. Register in top-level `__init__.py`
-1. Add tests in `tests/test_nodes.py`
-1. Update documentation in package README
+2. Follow ComfyUI node pattern (see above)
+3. Export in `nodes/__init__.py`
+4. Register in top-level `__init__.py`
+5. Add tests in `tests/test_nodes.py`
+6. Update documentation in package README
 
 ### Adding a New Scheduler
 
 1. Add scheduler name to `SCHEDULER_CLASSES` in `schedulers.py`
-1. Update `get_scheduler_list()` return value
-1. Test with `create_scheduler()` function
-1. Add tests in `tests/test_schedulers.py`
+2. Update `get_scheduler_list()` return value
+3. Test with `create_scheduler()` function
+4. Add tests in `tests/test_schedulers.py`
 
 ### Modifying Node Inputs
 
 1. Update `INPUT_TYPES()` class method
-1. Update node function signature
-1. Update docstring with new parameters
-1. Add validation for new inputs
-1. Update tests to cover new inputs
+2. Update node function signature
+3. Update docstring with new parameters
+4. Add validation for new inputs
+5. Update tests to cover new inputs
 
 ### Adding Dependencies
 
 1. Add to `dependencies` in `pyproject.toml` (runtime)
-1. Or add to `dev` optional dependencies (development only)
-1. Update `requirements.txt` for non-editable installs
+2. Or add to `dev` optional dependencies (development only)
+3. Update `requirements.txt` for non-editable installs
 
 ## CI/CD
 
 GitHub Actions runs on push/PR to main and develop branches:
 
 1. Linting (flake8)
-1. Format checking (black)
-1. Type checking (mypy)
-1. Tests with coverage (pytest-cov)
-1. Coverage upload (codecov)
+2. Format checking (black)
+3. Type checking (mypy)
+4. Tests with coverage (pytest-cov)
+5. Coverage upload (codecov)
 
 Publishing to PyPI triggers on version tags (`v*`) - currently disabled until package is ready for public release.
 
@@ -488,7 +504,8 @@ cd ComfyUI/custom_nodes
 ln -s /path/to/fluxflow-comfyui fluxflow-comfyui
 cd fluxflow-comfyui
 pip install -e ".[dev]"
-```text
+```
+
 ### Production (Git Clone)
 
 ```bash
@@ -496,7 +513,8 @@ cd ComfyUI/custom_nodes
 git clone https://github.com/danny-mio/fluxflow-comfyui.git
 cd fluxflow-comfyui
 pip install -e .
-```text
+```
+
 ### Package Installation (Not Yet Available)
 
 Package not yet published to PyPI. Use development or git clone methods above.

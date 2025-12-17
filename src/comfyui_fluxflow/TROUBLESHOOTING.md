@@ -12,13 +12,15 @@
 cd /path/to/fluxflow
 git pull  # if using git
 # or re-copy the plugin files
-```text
+```
+
 If still having issues, update dependencies in ComfyUI:
 ```bash
 cd /path/to/ComfyUI
 source venv/bin/activate  # if using venv
 pip install --upgrade diffusers huggingface_hub
-```text
+```
+
 **Note**: The plugin now lazy-loads schedulers to avoid import conflicts.
 
 ---
@@ -37,7 +39,8 @@ pip install fluxflow
 # Or install from local source
 cd /path/to/fluxflow-core
 pip install -e .
-```text
+```
+
 #### Option B: Use Symlink (Development)
 ```bash
 # Remove copied plugin if it exists
@@ -50,7 +53,8 @@ ln -s /absolute/path/to/fluxflow-comfyui/src/comfyui_fluxflow ./comfyui_fluxflow
 # Verify symlink
 ls -la comfyui_fluxflow
 # Should show: comfyui_fluxflow -> /absolute/path/to/fluxflow-comfyui/src/comfyui_fluxflow
-```text
+```
+
 ### 3. Verify Installation
 
 **Check symlink resolution**:
@@ -59,7 +63,8 @@ ls -la comfyui_fluxflow
 cd /path/to/ComfyUI/custom_nodes/
 ls -la comfyui_fluxflow
 readlink comfyui_fluxflow
-```text
+```
+
 **Test imports**:
 ```python
 # Verify fluxflow core is accessible
@@ -69,7 +74,8 @@ print(f'FluxFlow version: {fluxflow.__version__}')
 # Verify plugin imports
 from comfyui_fluxflow.nodes.model_loader import FluxFlowModelLoader
 print('Plugin imports successful')
-```text
+```
+
 ### 4. Import Errors on Other Nodes
 
 **Problem**: Other imports failing after fixing src import.
@@ -79,7 +85,8 @@ print('Plugin imports successful')
 ```bash
 cd /path/to/ComfyUI
 pip install safetensors transformers diffusers einops
-```text
+```
+
 ### 5. Scheduler Import Warnings
 
 **Problem**: Deprecation warnings about diffusers scheduler imports.
@@ -94,17 +101,20 @@ The schedulers work correctly despite the warnings.
 **Solutions**:
 
 1. Use absolute path:
-```text
+```
 /absolute/path/to/outputs/flux/flxflow_final.safetensors
-```text
-1. Or path relative to FluxFlow project:
-```text
+```
+
+2. Or path relative to FluxFlow project:
+```
 outputs/flux/flxflow_final.safetensors
-```text
-1. Verify file exists:
+```
+
+3. Verify file exists:
 ```bash
 ls -lh /path/to/checkpoint.safetensors
-```text
+```
+
 ### 7. CUDA Out of Memory
 
 **Problem**: GPU runs out of memory during generation.
@@ -114,12 +124,12 @@ ls -lh /path/to/checkpoint.safetensors
 1. Set device to CPU in Model Loader:
    - device: "cpu"
 
-1. Reduce image dimensions:
+2. Reduce image dimensions:
    - Use 256x256 or 384x384 instead of 512x512
 
-1. Reduce batch size to 1
+3. Reduce batch size to 1
 
-1. Close other GPU applications
+4. Close other GPU applications
 
 ### 8. "No module named 'comfyui_fluxflow'"
 
@@ -133,7 +143,8 @@ pkill -f "python.*main.py"
 # Restart
 cd /path/to/ComfyUI
 python main.py
-```text
+```
+
 ### 9. Nodes Don't Appear in ComfyUI
 
 **Problem**: Plugin loaded but nodes not visible.
@@ -142,18 +153,19 @@ python main.py
 
 1. Check ComfyUI console for import errors
 
-1. Refresh node list in ComfyUI:
+2. Refresh node list in ComfyUI:
    - Right-click → Refresh
    - Or restart ComfyUI
 
-1. Search for "FluxFlow" in node browser
+3. Search for "FluxFlow" in node browser
 
-1. Check plugin loaded:
+4. Check plugin loaded:
 ```bash
 # In ComfyUI console, you should see:
 # "Import times for custom nodes:"
 # "   0.X seconds: /path/to/comfyui_fluxflow"
-```text
+```
+
 ### 10. Type Checking Errors in IDE
 
 **Problem**: IDE shows import errors but code runs fine.
@@ -169,7 +181,8 @@ The plugin works correctly at runtime.
 ```bash
 cd /path/to/fluxflow
 python -m black comfyui_fluxflow/ --line-length 100
-```text
+```
+
 ## Getting More Help
 
 ### Debug Information to Provide
@@ -177,11 +190,11 @@ python -m black comfyui_fluxflow/ --line-length 100
 When reporting issues, include:
 
 1. ComfyUI console output (full error traceback)
-1. Plugin installation method (symlink/pip install)
-1. Operating system
-1. Python version: `python --version`
-1. PyTorch version: `python -c "import torch; print(torch.__version__)"`
-1. FluxFlow version: `python -c "import fluxflow; print(fluxflow.__version__)"`
+2. Plugin installation method (symlink/pip install)
+3. Operating system
+4. Python version: `python --version`
+5. PyTorch version: `python -c "import torch; print(torch.__version__)"`
+6. FluxFlow version: `python -c "import fluxflow; print(fluxflow.__version__)"`
 
 ### Test Import Manually
 
@@ -204,7 +217,8 @@ try:
     print("✓ Plugin imports work")
 except Exception as e:
     print(f"✗ Import failed: {e}")
-```text
+```
+
 ### Verify Plugin Structure
 
 ```bash
@@ -212,9 +226,10 @@ cd /path/to/ComfyUI/custom_nodes/comfyui_fluxflow
 tree -L 2
 # or
 find . -name "*.py" | sort
-```text
+```
+
 Should show:
-```text
+```
 ./\_\_init\_\_.py
 ./model_inspector.py
 ./schedulers.py
@@ -224,11 +239,12 @@ Should show:
 ./nodes/text_encode.py
 ./nodes/samplers.py
 ./nodes/utils.py
-```text
+```
+
 ## Still Having Issues?
 
 1. Check ComfyUI logs for detailed error messages
-1. Ensure FluxFlow training completed successfully
-1. Verify checkpoint file is valid (.safetensors format)
-1. Try the example workflow from README.md
-1. Check FluxFlow repository issues on GitHub
+2. Ensure FluxFlow training completed successfully
+3. Verify checkpoint file is valid (.safetensors format)
+4. Try the example workflow from README.md
+5. Check FluxFlow repository issues on GitHub

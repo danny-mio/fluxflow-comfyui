@@ -16,7 +16,8 @@ pytest tests/test_foo.py::test_bar -v               # Single test function
 pytest tests/test_foo.py::TestClass::test_bar       # Single method
 make lint                 # Run flake8, black --check, isort --check
 make format               # Format with black + isort
-```text
+```
+
 ## Code Style
 - **Python >= 3.10** with type hints on public APIs
 - **Black** formatting (line-length=100), **isort** (profile=black)
