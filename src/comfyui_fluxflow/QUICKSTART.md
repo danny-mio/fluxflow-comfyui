@@ -12,8 +12,7 @@ ln -s /path/to/fluxflow-comfyui/src/comfyui_fluxflow ./comfyui_fluxflow
 # 3. Restart ComfyUI
 # Kill existing: Ctrl+C or pkill -f "python.*main.py"
 # Start: cd /path/to/ComfyUI && python main.py
-```
-
+```text
 ## First Generation (2 minutes)
 
 ### 1. Add Nodes
@@ -21,11 +20,11 @@ ln -s /path/to/fluxflow-comfyui/src/comfyui_fluxflow ./comfyui_fluxflow
 In ComfyUI interface, add these nodes (search for "FluxFlow"):
 
 1. **FluxFlow Model Loader**
-2. **FluxFlow Empty Latent**  
-3. **FluxFlow Text Encode**
-4. **FluxFlow Sampler**
-5. **FluxFlow VAE Decode**
-6. **Preview Image** (standard ComfyUI node)
+1. **FluxFlow Empty Latent**  
+1. **FluxFlow Text Encode**
+1. **FluxFlow Sampler**
+1. **FluxFlow VAE Decode**
+1. **Preview Image** (standard ComfyUI node)
 
 ### 2. Configure
 
@@ -47,7 +46,7 @@ In ComfyUI interface, add these nodes (search for "FluxFlow"):
 
 ### 3. Connect
 
-```
+```text
 Model Loader outputs:
 ├─ model → Text Encode, Sampler, VAE Decode
 ├─ text_encoder → Text Encode
@@ -64,8 +63,7 @@ Sampler:
 
 VAE Decode:
 └─ image → Preview Image
-```
-
+```text
 ### 4. Generate!
 
 Click "Queue Prompt" and watch the magic happen!
@@ -97,14 +95,13 @@ Click "Queue Prompt" and watch the magic happen!
 
 When you load a checkpoint, the console shows:
 
-```
+```text
 FluxFlow Model Configuration (Auto-Detected)
 VAE Latent Dim:        32
 Flow Model Dim:        32  
 Text Embedding Dim:    1024
 Compression Ratio:     16x
 ✓ All dimensions auto-configured!
-```
-
+```text
 No manual configuration needed!
 

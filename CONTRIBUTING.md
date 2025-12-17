@@ -20,8 +20,7 @@ pip install -e ".[dev]"
 
 # Install pre-commit hooks (automatic code quality checks)
 pre-commit install
-```
-
+```text
 ### 2. Development Workflow
 
 #### Before Making Changes
@@ -29,8 +28,7 @@ pre-commit install
 ```bash
 # Create a new branch
 git checkout -b feature/your-feature-name
-```
-
+```text
 #### During Development
 
 ```bash
@@ -46,8 +44,7 @@ mypy src/
 
 # Run tests
 pytest tests/ -v
-```
-
+```text
 #### Before Committing
 
 Pre-commit hooks will automatically run when you commit. To run them manually:
@@ -55,8 +52,7 @@ Pre-commit hooks will automatically run when you commit. To run them manually:
 ```bash
 # Run all pre-commit checks
 pre-commit run --all-files
-```
-
+```text
 ### 3. Code Quality Standards
 
 FluxFlow ComfyUI uses several tools to maintain code quality:
@@ -109,8 +105,7 @@ def process_data(input_path: str, output_path: Optional[str] = None) -> dict[str
     logger.info(f"Processing data from {input_path}")
     # Implementation here
     return {"processed": 42}
-```
-
+```text
 ### Documentation
 
 - Update README.md for user-facing changes
@@ -127,8 +122,7 @@ All new code should include tests:
 # Create test file in appropriate directory
 tests/unit/test_your_feature.py
 tests/integration/test_your_workflow.py
-```
-
+```text
 ### Test Structure
 
 ```python
@@ -151,8 +145,7 @@ class TestYourClass:
         """Test error handling."""
         with pytest.raises(ValueError):
             obj = YourClass(invalid_param="bad")
-```
-
+```text
 ### Running Tests
 
 ```bash
@@ -167,11 +160,10 @@ pytest tests/unit/test_your_feature.py -v
 
 # Specific test function
 pytest tests/unit/test_your_feature.py::test_function_name -v
-```
-
+```text
 ## Project Structure
 
-```
+```text
 fluxflow-comfyui/
 ├── src/
 │   └── comfyui_fluxflow/      # Main package
@@ -186,16 +178,15 @@ fluxflow-comfyui/
 ├── pyproject.toml              # Project configuration
 ├── AGENTS.md                   # Code style reference
 └── README.md                   # User documentation
-```
-
+```text
 This is a standalone repository, independently installable via pip.
 
 ## Pull Request Process
 
 1. **Create a branch** from `develop` or `main`
-2. **Make your changes** with tests and documentation
-3. **Run all checks**: `pre-commit run --all-files`
-4. **Commit with clear messages**:
+1. **Make your changes** with tests and documentation
+1. **Run all checks**: `pre-commit run --all-files`
+1. **Commit with clear messages**:
    ```bash
    git commit -m "Add feature: brief description
 
@@ -204,36 +195,36 @@ This is a standalone repository, independently installable via pip.
    - Specific change 1
    - Specific change 2"
    ```
-5. **Push and create PR** on GitHub
-6. **Address review feedback** if any
+1. **Push and create PR** on GitHub
+1. **Address review feedback** if any
 
 ## Common Tasks
 
 ### Adding a New Feature
 
 1. Create feature branch: `git checkout -b feature/name`
-2. Add implementation in appropriate module
-3. Add type hints and docstrings
-4. Add tests for the feature
-5. Update documentation if user-facing
-6. Run `pre-commit run --all-files` to verify quality
-7. Commit and create PR
+1. Add implementation in appropriate module
+1. Add type hints and docstrings
+1. Add tests for the feature
+1. Update documentation if user-facing
+1. Run `pre-commit run --all-files` to verify quality
+1. Commit and create PR
 
 ### Fixing a Bug
 
 1. Create bugfix branch: `git checkout -b fix/issue-description`
-2. Add a test that reproduces the bug
-3. Fix the bug
-4. Verify the test passes
-5. Run `pre-commit run --all-files`
-6. Commit and create PR
+1. Add a test that reproduces the bug
+1. Fix the bug
+1. Verify the test passes
+1. Run `pre-commit run --all-files`
+1. Commit and create PR
 
 ### Adding Dependencies
 
 1. Add to appropriate section in `pyproject.toml`:
    - Core dependencies → `dependencies`
    - Dev dependencies → `optional-dependencies.dev`
-2. Document why the dependency is needed in your PR
+1. Document why the dependency is needed in your PR
 
 ## Requesting Contributor Access
 
@@ -242,8 +233,8 @@ This is a standalone repository, independently installable via pip.
 Anyone can contribute via pull requests! Just:
 
 1. Fork the repository
-2. Make changes in your fork
-3. Submit a pull request to the `develop` branch
+1. Make changes in your fork
+1. Submit a pull request to the `develop` branch
 
 No special permissions needed!
 
@@ -252,9 +243,9 @@ No special permissions needed!
 If you want to contribute regularly:
 
 1. **Start by contributing** - Submit 1-3 quality PRs first
-2. **Open a discussion** at https://github.com/danny-mio/fluxflow-comfyui/discussions
-3. **Use title**: `Request: Contributor Access for [Your Name]`
-4. **Include**: GitHub username, merged PRs, contribution areas, availability, experience
+1. **Open a discussion** at https://github.com/danny-mio/fluxflow-comfyui/discussions
+1. **Use title**: `Request: Contributor Access for [Your Name]`
+1. **Include**: GitHub username, merged PRs, contribution areas, availability, experience
 
 Repository owner reviews requests within 7 days.
 

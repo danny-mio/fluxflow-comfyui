@@ -11,16 +11,15 @@ The `web/fluxflow_types.js` extension attempts to provide:
 After extensive testing, we've confirmed:
 
 1. **Colors ARE registered successfully** in `LGraphCanvas.link_type_colors`
-2. **Colors ARE set on slot objects** (`color_on`, `color_off` properties)
-3. **ComfyUI's renderer IGNORES these colors** for custom types
+1. **Colors ARE set on slot objects** (`color_on`, `color_off` properties)
+1. **ComfyUI's renderer IGNORES these colors** for custom types
 
 ### Console Evidence
-```
+```text
 [FluxFlow] Current link_type_colors: {-1: '#A86', number: '#AAA', node: '#DCA'}
 [FluxFlow] Final link_type_colors keys: ['FLUXFLOW_MODEL', 'FLUXFLOW_TEXT_ENCODER', ...]
 [FluxFlow] Our FLUXFLOW types in link_type_colors: {FLUXFLOW_MODEL: '#8B5CF6', FLUXFLOW_LATENT: '#3B82F6'}
-```
-
+```text
 **Conclusion**: Colors are stored correctly but ComfyUI's Vue/TypeScript frontend doesn't render them.
 
 ## Why Features Don't Work
@@ -50,21 +49,20 @@ Custom types added via JavaScript extensions **cannot override the rendering pip
 
 ### Browser Console Check
 If the extension loads correctly, you should see:
-```
+```text
 [FluxFlow] Extension loading...
 [FluxFlow] Extension setup() called
 [FluxFlow] LiteGraph found, registering types...
 [FluxFlow] Registered type: FLUXFLOW_MODEL with color #8B5CF6
 [FluxFlow] Registered type: FLUXFLOW_TEXT_ENCODER with color #10B981
 ...
-```
-
+```text
 ## Workarounds for Missing Auto-Suggest
 
 Since ComfyUI doesn't support custom type matching, users must:
 1. **Right-click canvas** → Add Node → FluxFlow
-2. **Search in node menu** for specific FluxFlow nodes
-3. **Manually connect** compatible nodes by type
+1. **Search in node menu** for specific FluxFlow nodes
+1. **Manually connect** compatible nodes by type
 
 ## Possible Future Solutions
 

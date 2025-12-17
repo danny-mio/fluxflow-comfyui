@@ -20,23 +20,20 @@ cd /path/to/ComfyUI/custom_nodes/
 
 # Create symlink to plugin (MUST use absolute path)
 ln -s /absolute/path/to/fluxflow-comfyui/src/comfyui_fluxflow ./comfyui_fluxflow
-```
-
+```text
 ### 3. Verify Installation
 
 ```bash
 # Check dependencies (usually already installed with ComfyUI)
 cd /path/to/ComfyUI/custom_nodes/comfyui_fluxflow
 pip install -r requirements.txt
-```
-
+```text
 ### 4. Restart ComfyUI
 
 ```bash
 # Restart ComfyUI server
 # The plugin will be auto-loaded
-```
-
+```text
 ### 5. Verify Nodes Loaded
 
 In ComfyUI interface, search for "FluxFlow" in the node browser.
@@ -55,24 +52,24 @@ You should see:
    - Set `checkpoint_path` to your trained model
    - Leave `device` as "auto"
 
-2. **Add FluxFlowEmptyLatent node**
+1. **Add FluxFlowEmptyLatent node**
    - Set desired width/height (e.g., 512x512)
    - Connect to sampler
 
-3. **Add FluxFlowTextEncode node**
+1. **Add FluxFlowTextEncode node**
    - Connect text_encoder and tokenizer from loader
    - Enter your prompt
 
-4. **Add FluxFlowSampler node**
+1. **Add FluxFlowSampler node**
    - Connect model, latent, and conditioning
    - Choose scheduler (default: DPMSolverMultistep)
    - Set steps (20-50 recommended)
 
-5. **Add FluxFlowVAEDecode node**
+1. **Add FluxFlowVAEDecode node**
    - Connect model and sampled latent
    - Output connects to SaveImage or Preview
 
-6. **Queue Prompt!**
+1. **Queue Prompt!**
 
 ## Troubleshooting
 
@@ -81,17 +78,15 @@ You should see:
 ```bash
 # Install missing dependencies
 pip install torch safetensors transformers diffusers einops Pillow
-```
-
+```text
 ### "Checkpoint not found"
 
 Use absolute paths or paths relative to FluxFlow project root:
 
-```
+```text
 ✓ /absolute/path/to/outputs/flux/flxflow_final.safetensors
 ✓ outputs/flux/flxflow_final.safetensors
-```
-
+```text
 ### CUDA out of memory
 
 - Set `device: "cpu"` in Model Loader

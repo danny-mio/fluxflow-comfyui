@@ -43,8 +43,7 @@ ln -s /path/to/fluxflow/comfyui_fluxflow ./comfyui_fluxflow
 
 # Install dependencies (if needed)
 pip install -r comfyui_fluxflow/requirements.txt
-```
-
+```text
 ### Method 2: Direct Installation
 
 ```bash
@@ -52,8 +51,7 @@ pip install -r comfyui_fluxflow/requirements.txt
 cp -r /path/to/fluxflow/comfyui_fluxflow /path/to/ComfyUI/custom_nodes/
 
 # Restart ComfyUI
-```
-
+```text
 ---
 
 ## Nodes Overview
@@ -176,19 +174,19 @@ cp -r /path/to/fluxflow/comfyui_fluxflow /path/to/ComfyUI/custom_nodes/
 
 **Available Schedulers** (14 total):
 1. **DPMSolverMultistep** (default) - Fast, high quality
-2. **DPMPlusPlusKarras** ⭐ NEW - Premium quality with Karras schedule
-3. **DPMSolverSinglestep** - Single-step variant
-4. **DPMSolverSDE** - Stochastic variant
-5. **EulerDiscrete** - Simple, stable
-6. **EulerAncestralDiscrete** - Stochastic Euler
-7. **HeunDiscrete** - Second-order method
-8. **DDIM** - Classic DDIM sampler
-9. **DDPM** - Original DDPM
-10. **LCM** - Latent Consistency Model (fast!)
-11. **UniPCMultistep** - Unified predictor-corrector
-12. **KDPM2Discrete** - Karras DPMPP 2M
-13. **KDPM2AncestralDiscrete** - Karras ancestral
-14. **DEISMultistep** - Diffusion exponential integrator
+1. **DPMPlusPlusKarras** ⭐ NEW - Premium quality with Karras schedule
+1. **DPMSolverSinglestep** - Single-step variant
+1. **DPMSolverSDE** - Stochastic variant
+1. **EulerDiscrete** - Simple, stable
+1. **EulerAncestralDiscrete** - Stochastic Euler
+1. **HeunDiscrete** - Second-order method
+1. **DDIM** - Classic DDIM sampler
+1. **DDPM** - Original DDPM
+1. **LCM** - Latent Consistency Model (fast!)
+1. **UniPCMultistep** - Unified predictor-corrector
+1. **KDPM2Discrete** - Karras DPMPP 2M
+1. **KDPM2AncestralDiscrete** - Karras ancestral
+1. **DEISMultistep** - Diffusion exponential integrator
 
 **Note**: All schedulers work with standalone fallback if diffusers is broken
 
@@ -198,7 +196,7 @@ cp -r /path/to/fluxflow/comfyui_fluxflow /path/to/ComfyUI/custom_nodes/
 
 ### Basic Text-to-Image Generation
 
-```
+```text
 1. FluxFlowModelLoader
    └─ checkpoint_path: "outputs/flux/flxflow_final.safetensors"
    └─ device: "auto"
@@ -207,21 +205,21 @@ cp -r /path/to/fluxflow/comfyui_fluxflow /path/to/ComfyUI/custom_nodes/
    ├─ text_encoder → 3
    └─ tokenizer → 3
 
-2. FluxFlowEmptyLatent
+1. FluxFlowEmptyLatent
    └─ width: 512
    └─ height: 512
    └─ seed: 42
    ↓
    └─ latent → 4
 
-3. FluxFlowTextEncode
+1. FluxFlowTextEncode
    ├─ text_encoder (from 1)
    ├─ tokenizer (from 1)
    └─ text: "A beautiful sunset over mountains"
    ↓
    └─ conditioning → 4
 
-4. FluxFlowSampler
+1. FluxFlowSampler
    ├─ model (from 1)
    ├─ latent (from 2)
    ├─ conditioning (from 3)
@@ -231,41 +229,40 @@ cp -r /path/to/fluxflow/comfyui_fluxflow /path/to/ComfyUI/custom_nodes/
    ↓
    └─ latent → 5
 
-5. FluxFlowVAEDecode
+1. FluxFlowVAEDecode
    ├─ model (from 1)
    └─ latent (from 4)
    ↓
    └─ image (final output)
-```
-
+```text
 ### Image-to-Image with Different Scheduler
 
-```
+```text
 1. Load Image (ComfyUI native)
    ↓
    └─ image → 2
 
-2. FluxFlowModelLoader
+1. FluxFlowModelLoader
    └─ checkpoint_path: "..."
    ↓
    ├─ model → 3, 5
    ├─ text_encoder → 4
    └─ tokenizer → 4
 
-3. FluxFlowVAEEncode
+1. FluxFlowVAEEncode
    ├─ model (from 2)
    └─ image (from 1)
    ↓
    └─ latent → 5
 
-4. FluxFlowTextEncode
+1. FluxFlowTextEncode
    ├─ text_encoder (from 2)
    ├─ tokenizer (from 2)
    └─ text: "Transform into oil painting style"
    ↓
    └─ conditioning → 5
 
-5. FluxFlowSampler
+1. FluxFlowSampler
    ├─ model (from 2)
    ├─ latent (from 3)
    ├─ conditioning (from 4)
@@ -274,13 +271,12 @@ cp -r /path/to/fluxflow/comfyui_fluxflow /path/to/ComfyUI/custom_nodes/
    ↓
    └─ latent → 6
 
-6. FluxFlowVAEDecode
+1. FluxFlowVAEDecode
    ├─ model (from 2)
    └─ latent (from 5)
    ↓
    └─ image (final output)
-```
-
+```text
 ---
 
 ## Technical Details
@@ -331,18 +327,16 @@ If you see import errors on ComfyUI startup:
 # Install missing dependencies
 cd ComfyUI/custom_nodes/comfyui_fluxflow
 pip install -r requirements.txt
-```
-
+```text
 ### Checkpoint Not Found
 
 Ensure the checkpoint path is absolute or relative to ComfyUI root:
 
-```
+```text
 ✓ Good: "/absolute/path/to/outputs/flux/flxflow_final.safetensors"
 ✓ Good: "outputs/flux/flxflow_final.safetensors" (relative to FluxFlow project)
 ✗ Bad: "flux/model.safetensors" (ambiguous)
-```
-
+```text
 ### Device Errors
 
 If CUDA out of memory:
@@ -381,7 +375,7 @@ If you get dimension errors:
 
 ### Project Structure
 
-```
+```text
 comfyui_fluxflow/
 ├── __init__.py                   # Plugin entry point
 ├── model_inspector.py            # Auto-detection system
@@ -395,8 +389,7 @@ comfyui_fluxflow/
     ├── text_encode.py           # Text encoding
     ├── samplers.py              # Sampling node
     └── utils.py                 # Image conversion utilities
-```
-
+```text
 ### Adding New Schedulers
 
 To add a new scheduler:
@@ -404,17 +397,15 @@ To add a new scheduler:
 1. Import in `schedulers.py`:
 ```python
 from diffusers import NewScheduler
-```
-
-2. Add to `SCHEDULER_MAP`:
+```text
+1. Add to `SCHEDULER_MAP`:
 ```python
 SCHEDULER_MAP = {
     ...
     "NewScheduler": NewScheduler,
 }
-```
-
-3. Add defaults to `SCHEDULER_DEFAULTS`:
+```text
+1. Add defaults to `SCHEDULER_DEFAULTS`:
 ```python
 SCHEDULER_DEFAULTS = {
     ...
@@ -423,8 +414,7 @@ SCHEDULER_DEFAULTS = {
         ...
     },
 }
-```
-
+```text
 ---
 
 ## License
