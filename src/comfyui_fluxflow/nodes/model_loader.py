@@ -7,6 +7,7 @@ Automatically detects model configuration from checkpoint and initializes all co
 import logging
 
 import safetensors.torch
+import torch
 
 # Import from installed fluxflow package
 from fluxflow.models import (
@@ -111,9 +112,23 @@ class FluxFlowModelLoader:
             if checkpoint_path_obj.is_dir():
                 # Versioned checkpoint (directory with metadata.json + model.safetensors)
                 logger.info("Loading versioned checkpoint...")
-                pipeline = load_versioned_checkpoint(checkpoint_path, device_obj)
+                pipeline = load_versioned_checkpoint(Path(checkpoint_path), str(device_obj))
                 diffuser = pipeline
-                text_encoder = pipeline.text_encoder
+
+                # Load text_encoder separately (not included in versioned checkpoints)
+                logger.info("Loading text encoder...")
+                tokenizer = AutoTokenizer.from_pretrained(
+                    tokenizer_name, cache_dir="./_cache", local_files_only=False
+                )
+                if tokenizer.pad_token is None:
+                    tokenizer.pad_token = tokenizer.eos_token
+                    tokenizer.add_special_tokens({"pad_token": "[PAD]"})
+
+                text_encoder = BertTextEncoder(embed_dim=1024)  # Default for ComfyUI
+
+                # Ensure models are on device
+                pipeline.to(device_obj)
+                text_encoder.to(device_obj)
 
                 # Extract version info
                 version = getattr(pipeline, 'version', 'unknown')
@@ -130,10 +145,7 @@ class FluxFlowModelLoader:
                 else:
                     flow_dim = "unknown"
 
-                if hasattr(text_encoder, 'embed_dim'):
-                    text_embed_dim = text_encoder.embed_dim
-                else:
-                    text_embed_dim = "unknown"
+                text_embed_dim = text_encoder.embed_dim if hasattr(text_encoder, 'embed_dim') else "unknown"
 
                 config_info = f"Version {version} - VAE: {vae_dim}d, Flow: {flow_dim}d, Text: {text_embed_dim}d"
 
@@ -141,11 +153,23 @@ class FluxFlowModelLoader:
                 # Try legacy versioned loading (single file with metadata)
                 try:
                     logger.info("Attempting legacy versioned loading...")
-                    pipeline = FluxPipeline.from_pretrained(
-                        checkpoint_path, device=device_obj, use_versioning=True
-                    )
+                    pipeline = load_versioned_checkpoint(Path(checkpoint_path), str(device_obj))
                     diffuser = pipeline
-                    text_encoder = pipeline.text_encoder
+
+                    # Load text_encoder separately
+                    tokenizer = AutoTokenizer.from_pretrained(
+                        tokenizer_name, cache_dir="./_cache", local_files_only=False
+                    )
+                    if tokenizer.pad_token is None:
+                        tokenizer.pad_token = tokenizer.eos_token
+                        tokenizer.add_special_tokens({"pad_token": "[PAD]"})
+
+                    text_encoder = BertTextEncoder(embed_dim=1024)  # Default for ComfyUI
+
+                    # Ensure models are on device
+                    pipeline.to(device_obj)
+                    text_encoder.to(device_obj)
+
                     version = getattr(pipeline, 'version', 'legacy')
                     logger.info(f"Loaded legacy versioned checkpoint (v{version})")
 
