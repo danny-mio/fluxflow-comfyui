@@ -168,6 +168,20 @@ class FluxFlowModelLoader:
             # Initialize models with detected configuration (v0.3.0 defaults)
             logger.info("Initializing models with v0.3.0 architecture...")
 
+            # Calculate appropriate attention heads to ensure d_model is divisible
+            def get_valid_n_head(d_model, preferred_heads=8):
+                """Get number of heads that evenly divides d_model."""
+                if d_model % preferred_heads == 0:
+                    return preferred_heads
+                # Find largest divisor that keeps heads reasonable
+                for heads in range(preferred_heads, 0, -1):
+                    if d_model % heads == 0:
+                        return heads
+                return 1  # Fallback, though this shouldn't happen
+
+            # Use flexible attention heads for compatibility
+            flow_attn_heads = get_valid_n_head(config["flow_dim"], config.get("flow_attn_heads", 8))
+
             compressor = FluxCompressor(
                 in_channels=3,
                 d_model=config["vae_dim"],
@@ -181,7 +195,7 @@ class FluxFlowModelLoader:
                 d_model=config["flow_dim"],
                 vae_dim=config["vae_dim"],
                 embedding_size=config["text_embed_dim"],
-                n_head=config.get("flow_attn_heads", 8),
+                n_head=flow_attn_heads,  # Use calculated heads for compatibility
                 n_layers=config.get("flow_transformer_layers", 10),
                 max_hw=config["max_hw"],
             )
