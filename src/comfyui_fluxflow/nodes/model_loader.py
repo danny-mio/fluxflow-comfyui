@@ -161,8 +161,33 @@ class FluxFlowModelLoader:
                     raise legacy_error  # Fall through to legacy loading
 
         except Exception as versioned_error:
-            # Fall back to legacy architecture detection (assumes v0.3.0)
-            logger.info(f"Versioned loading failed ({versioned_error}), using legacy v0.3.0 detection")
+            # Fall back to legacy architecture detection with automatic version detection
+            logger.info(f"Versioned loading failed ({versioned_error}), inspecting checkpoint for architecture")
+
+            # First, inspect checkpoint to detect architecture
+            try:
+                import safetensors.torch
+                if checkpoint_path.endswith('.safetensors'):
+                    state_dict = safetensors.torch.load_file(checkpoint_path)
+                else:
+                    state_dict = torch.load(checkpoint_path, map_location='cpu')
+                keys = list(state_dict.keys())
+
+                # Check for v0.7.0 features
+                has_v070_features = any(
+                    "ctx_mixer" in key or "context_injection" in key or "context_final" in key
+                    for key in keys
+                )
+
+                if has_v070_features:
+                    logger.info("Detected v0.7.0 features in checkpoint, this requires proper metadata")
+                    logger.error("Cannot load v0.7.0 model without metadata. Please re-save the model with save_versioned_checkpoint()")
+                    return (None, None, None, "Error: v0.7.0 model detected but requires metadata. Please re-save with save_versioned_checkpoint()")
+            except Exception as inspect_error:
+                logger.debug(f"Checkpoint inspection failed: {inspect_error}")
+
+            # Fall back to v0.3.0 detection
+            logger.info("Using legacy v0.3.0 detection")
             config = get_model_info(checkpoint_path, verbose=True)
 
             # Initialize models with detected configuration (v0.3.0 defaults)
@@ -186,9 +211,18 @@ class FluxFlowModelLoader:
                 in_channels=3,
                 d_model=config["vae_dim"],
                 downscales=config["downscales"],
-                max_hw=config["max_hw"],
+                max_hw=config.get("max_hw", 1024),
                 use_attention=True,
                 attn_layers=config.get("vae_attn_layers", 2),
+            )
+
+            flow_processor = FluxFlowProcessor(
+                d_model=config["flow_dim"],
+                vae_dim=config["vae_dim"],
+                embedding_size=config["text_embed_dim"],
+                n_head=flow_attn_heads,  # Use calculated heads for compatibility
+                n_layers=config.get("flow_transformer_layers", 10),
+                max_hw=config.get("max_hw", 1024),
             )
 
             flow_processor = FluxFlowProcessor(
