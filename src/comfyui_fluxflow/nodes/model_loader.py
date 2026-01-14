@@ -131,21 +131,25 @@ class FluxFlowModelLoader:
                 text_encoder.to(device_obj)
 
                 # Extract version info
-                version = getattr(pipeline, 'version', 'unknown')
+                version = getattr(pipeline, "version", "unknown")
                 logger.info(f"Loaded versioned checkpoint (v{version})")
 
                 # Create config info for versioned model
-                if hasattr(diffuser, 'compressor') and hasattr(diffuser.compressor, 'd_model'):
+                if hasattr(diffuser, "compressor") and hasattr(diffuser.compressor, "d_model"):
                     vae_dim = diffuser.compressor.d_model
                 else:
                     vae_dim = "unknown"
 
-                if hasattr(diffuser, 'flow_processor') and hasattr(diffuser.flow_processor, 'd_model'):
+                if hasattr(diffuser, "flow_processor") and hasattr(
+                    diffuser.flow_processor, "d_model"
+                ):
                     flow_dim = diffuser.flow_processor.d_model
                 else:
                     flow_dim = "unknown"
 
-                text_embed_dim = text_encoder.embed_dim if hasattr(text_encoder, 'embed_dim') else "unknown"
+                text_embed_dim = (
+                    text_encoder.embed_dim if hasattr(text_encoder, "embed_dim") else "unknown"
+                )
 
                 config_info = f"Version {version} - VAE: {vae_dim}d, Flow: {flow_dim}d, Text: {text_embed_dim}d"
 
@@ -170,13 +174,23 @@ class FluxFlowModelLoader:
                     pipeline.to(device_obj)
                     text_encoder.to(device_obj)
 
-                    version = getattr(pipeline, 'version', 'legacy')
+                    version = getattr(pipeline, "version", "legacy")
                     logger.info(f"Loaded legacy versioned checkpoint (v{version})")
 
                     # Extract dimensions
-                    vae_dim = diffuser.compressor.d_model if hasattr(diffuser, 'compressor') else "unknown"
-                    flow_dim = diffuser.flow_processor.d_model if hasattr(diffuser, 'flow_processor') else "unknown"
-                    text_embed_dim = text_encoder.embed_dim if hasattr(text_encoder, 'embed_dim') else "unknown"
+                    vae_dim = (
+                        diffuser.compressor.d_model
+                        if hasattr(diffuser, "compressor")
+                        else "unknown"
+                    )
+                    flow_dim = (
+                        diffuser.flow_processor.d_model
+                        if hasattr(diffuser, "flow_processor")
+                        else "unknown"
+                    )
+                    text_embed_dim = (
+                        text_encoder.embed_dim if hasattr(text_encoder, "embed_dim") else "unknown"
+                    )
                     config_info = f"Legacy v{version} - VAE: {vae_dim}d, Flow: {flow_dim}d, Text: {text_embed_dim}d"
 
                 except Exception as legacy_error:
@@ -186,15 +200,18 @@ class FluxFlowModelLoader:
 
         except Exception as versioned_error:
             # Fall back to legacy architecture detection with automatic version detection
-            logger.info(f"Versioned loading failed ({versioned_error}), inspecting checkpoint for architecture")
+            logger.info(
+                f"Versioned loading failed ({versioned_error}), inspecting checkpoint for architecture"
+            )
 
             # First, inspect checkpoint to detect architecture
             try:
                 import safetensors.torch
-                if checkpoint_path.endswith('.safetensors'):
+
+                if checkpoint_path.endswith(".safetensors"):
                     state_dict = safetensors.torch.load_file(checkpoint_path)
                 else:
-                    state_dict = torch.load(checkpoint_path, map_location='cpu')
+                    state_dict = torch.load(checkpoint_path, map_location="cpu")
                 keys = list(state_dict.keys())
 
                 # Check for v0.7.0 features
@@ -204,9 +221,18 @@ class FluxFlowModelLoader:
                 )
 
                 if has_v070_features:
-                    logger.info("Detected v0.7.0 features in checkpoint, this requires proper metadata")
-                    logger.error("Cannot load v0.7.0 model without metadata. Please re-save the model with save_versioned_checkpoint()")
-                    return (None, None, None, "Error: v0.7.0 model detected but requires metadata. Please re-save with save_versioned_checkpoint()")
+                    logger.info(
+                        "Detected v0.7.0 features in checkpoint, this requires proper metadata"
+                    )
+                    logger.error(
+                        "Cannot load v0.7.0 model without metadata. Please re-save the model with save_versioned_checkpoint()"
+                    )
+                    return (
+                        None,
+                        None,
+                        None,
+                        "Error: v0.7.0 model detected but requires metadata. Please re-save with save_versioned_checkpoint()",
+                    )
             except Exception as inspect_error:
                 logger.debug(f"Checkpoint inspection failed: {inspect_error}")
 
@@ -283,7 +309,9 @@ class FluxFlowModelLoader:
 
             # Log any issues for debugging
             if missing_keys:
-                logger.debug(f"{len(missing_keys)} keys not found in checkpoint (using random init)")
+                logger.debug(
+                    f"{len(missing_keys)} keys not found in checkpoint (using random init)"
+                )
             if unexpected_keys:
                 logger.debug(f"{len(unexpected_keys)} unexpected keys in checkpoint (ignored)")
 
