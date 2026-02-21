@@ -34,20 +34,20 @@ This method requires no additional symlink setup.
 For advanced users who want to manage the package separately:
 
 ```bash
-pip install fluxflow-comfyui
+pip install comfyui-fluxflow
 ```
 
 **What gets installed:**
-- `fluxflow-comfyui` - ComfyUI custom nodes for FluxFlow
+- `comfyui-fluxflow` - ComfyUI custom nodes for FluxFlow
 - `fluxflow` core package (automatically installed as dependency)
 - **Note**: Does NOT include training capabilities. Only inference/generation.
 
-**Package available on PyPI**: [fluxflow-comfyui v0.1.1](https://pypi.org/project/fluxflow-comfyui/)
+**Package available on PyPI**: [comfyui-fluxflow v0.8.0](https://pypi.org/project/comfyui-fluxflow/)
 
 **Additional Setup Required**: You must symlink the package into ComfyUI's `custom_nodes` directory:
 
 ```bash
-# Find where fluxflow-comfyui was installed
+# Find where comfyui-fluxflow was installed
 PACKAGE_PATH=$(python -c "import comfyui_fluxflow; print(comfyui_fluxflow.__path__[0])")
 
 # Create symlink in ComfyUI's custom_nodes directory
@@ -78,6 +78,8 @@ pip install -e ".[dev]"
 
 ### FluxFlowModelLoader
 Load FluxFlow model checkpoints (.safetensors or .pth files).
+
+**v0.8.0 model detection**: The loader automatically detects v0.8.0 pillar-attention checkpoints (identified by `pillar_cross_attn` or `film_p0` keys in the state dict). When a v0.8.0 checkpoint is detected, the loader returns a clear error directing you to use versioned loading via `load_versioned_checkpoint()` instead of the legacy loader. This prevents silent architecture mismatches.
 
 ### FluxFlowTextEncode
 Encode text prompts using DistilBERT.
@@ -171,11 +173,7 @@ The final prediction is guided by: `v_guided = v_uncond + guidance_scale * (v_co
 
 ### Guidance Scale Guidelines
 
-- **1.0**: No guidance (identical to standard sampling)
-- **3.0-7.0**: Moderate guidance (RECOMMENDED - balanced quality/creativity)
-- **7.0-15.0**: Strong guidance (may oversaturate or lose diversity)
-
-**Note**: Higher guidance scales increase computation time (2x forward passes per step).
+Recommended range: 3.0–7.0. At 1.0, guidance has no amplification effect (standard conditional generation). Above 7.0 may oversaturate or reduce diversity. Higher values increase computation (2x forward passes per step). See [fluxflow-core CFG documentation](https://github.com/danny-mio/fluxflow-core#classifier-free-guidance-cfg) for full guidance.
 
 ### CFG Performance
 
@@ -193,7 +191,7 @@ The final prediction is guided by: `v_guided = v_uncond + guidance_scale * (v_co
 ## Links
 
 - [GitHub Repository](https://github.com/danny-mio/fluxflow-comfyui)
-- [ComfyUI Documentation](https://github.com/danny-mio/fluxflow-comfyui/tree/main/src/comfyui_fluxflow)
+- [INSTALL / QUICKSTART](https://github.com/danny-mio/fluxflow-comfyui/tree/main/src/comfyui_fluxflow)
 - [Core Package](https://pypi.org/project/fluxflow/)
 - [Training Package](https://pypi.org/project/fluxflow-training/)
 
