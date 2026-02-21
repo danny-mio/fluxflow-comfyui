@@ -140,6 +140,16 @@ class FluxFlowModelLoader:
         logger.info("Loading checkpoint weights...")
         state_dict = safetensors.torch.load_file(checkpoint_path)
 
+        # Detect v0.8.0 features — cannot load without proper versioned loading
+        keys = list(state_dict.keys())
+        has_v080_features = any("pillar_cross_attn" in key or "film_p0" in key for key in keys)
+        if has_v080_features:
+            logger.error(
+                "v0.8.0 checkpoint detected (pillar-attention). "
+                "Use load_versioned_checkpoint() to load this model."
+            )
+            return (None, None, None, "Error: v0.8.0 checkpoint requires versioned loading")
+
         # Load diffuser state (filter out size mismatches for buffers)
         diffuser_state = {
             k.replace("diffuser.", ""): v
