@@ -212,27 +212,30 @@ class FluxFlowModelLoader:
                     state_dict = torch.load(checkpoint_path, map_location="cpu")
                 keys = list(state_dict.keys())
 
-                # Check for v0.8.0 features — cannot load without versioned loading
+                # Check for v0.8.0 features (pillar-attention)
                 has_v080_features = any(
                     "pillar_cross_attn" in key or "film_p0" in key for key in keys
                 )
-                if has_v080_features:
-                    logger.error(
-                        "v0.8.0 checkpoint detected (pillar-attention). "
-                        "Use load_versioned_checkpoint() to load this model."
-                    )
-                    return (
-                        None,
-                        None,
-                        None,
-                        "Error: v0.8.0 checkpoint requires versioned loading",
-                    )
 
                 # Check for v0.7.0 features
                 has_v070_features = any(
                     "ctx_mixer" in key or "context_injection" in key or "context_final" in key
                     for key in keys
                 )
+
+                if has_v080_features:
+                    logger.info(
+                        "Detected v0.8.0 features (pillar-attention) in checkpoint, this requires proper metadata"
+                    )
+                    logger.error(
+                        "Cannot load v0.8.0 model without metadata. Please re-save the model with save_versioned_checkpoint()"
+                    )
+                    return (
+                        None,
+                        None,
+                        None,
+                        "Error: v0.8.0 model detected but requires metadata. Please re-save with save_versioned_checkpoint()",
+                    )
 
                 if has_v070_features:
                     logger.info(
