@@ -480,7 +480,7 @@ GitHub Actions runs on push/PR to main and develop branches:
 4. Tests with coverage (pytest-cov)
 5. Coverage upload (codecov)
 
-Publishing to PyPI triggers on version tags (`v*`) - currently disabled until package is ready for public release.
+Publishing to PyPI triggers on version tags (`v*`).
 
 ## Related Repositories
 

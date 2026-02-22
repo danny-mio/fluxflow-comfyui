@@ -21,6 +21,9 @@ _No unreleased changes._
 - **Updated `fluxflow` dependency** to `>=0.8.0`
 - Version bumped to 0.8.0
 
+<!-- Versions 0.2.0–0.7.x were internal development iterations aligned with fluxflow-core
+     architecture changes. No separate ComfyUI plugin releases were made for those versions. -->
+
 ## [0.1.0] - 2025-01-13
 
 ### Added

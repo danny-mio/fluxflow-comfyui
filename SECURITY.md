@@ -139,14 +139,6 @@ We follow responsible disclosure principles:
 - **Transparency**: We publish security advisories for all confirmed vulnerabilities
 - **Credit**: We credit researchers who report vulnerabilities responsibly
 
-## Security Hall of Fame
-
-We recognize security researchers who help keep FluxFlow secure:
-
-<!-- This section will list researchers who have responsibly disclosed vulnerabilities -->
-
-*No vulnerabilities reported yet.*
-
 ## Contact
 
 - **Security issues**: danny-mio@libero.it (use [SECURITY] prefix)
@@ -156,6 +148,5 @@ We recognize security researchers who help keep FluxFlow secure:
 ## Additional Resources
 
 - [OWASP Secure Coding Practices](https://owasp.org/www-project-secure-coding-practices-quick-reference-guide/)
-- [PyTorch Security](https://pytorch.org/docs/stable/notes/security.html)
 
 ---

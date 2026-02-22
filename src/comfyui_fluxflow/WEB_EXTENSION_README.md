@@ -41,7 +41,7 @@ Custom types added via JavaScript extensions **cannot override the rendering pip
 
 ## What Works
 
-### Color Coding (Implemented)
+### Color Registration (Registered but Not Rendered)
 - Purple: `FLUXFLOW_MODEL`
 - Green: `FLUXFLOW_TEXT_ENCODER` 
 - Dark Green: `FLUXFLOW_TOKENIZER`

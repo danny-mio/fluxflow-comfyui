@@ -6,8 +6,10 @@
 # 1. Navigate to ComfyUI custom nodes
 cd /path/to/ComfyUI/custom_nodes/
 
-# 2. Create symlink (use YOUR actual path!)
-ln -s /path/to/fluxflow-comfyui/src/comfyui_fluxflow ./comfyui_fluxflow
+# 2. Clone the repository
+git clone https://github.com/danny-mio/fluxflow-comfyui.git
+cd fluxflow-comfyui
+pip install -r requirements.txt
 
 # 3. Restart ComfyUI
 # Kill existing: Ctrl+C or pkill -f "python.*main.py"
@@ -68,7 +70,7 @@ VAE Decode:
 
 ### 4. Generate!
 
-Click "Queue Prompt" and watch the magic happen!
+Click "Queue Prompt" to start generation. Check the console for progress output.
 
 ## Troubleshooting
 
@@ -99,8 +101,8 @@ When you load a checkpoint, the console shows:
 
 ```
 FluxFlow Model Configuration (Auto-Detected)
-VAE Latent Dim:        32
-Flow Model Dim:        32  
+VAE Latent Dim:        128
+Flow Model Dim:        128
 Text Embedding Dim:    1024
 Compression Ratio:     16x
 ✓ All dimensions auto-configured!
