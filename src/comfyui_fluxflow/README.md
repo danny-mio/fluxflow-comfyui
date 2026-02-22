@@ -32,26 +32,21 @@ A comprehensive ComfyUI plugin for using FluxFlow diffusion models with automati
 
 ## Installation
 
-### Method 1: Copy to ComfyUI Custom Nodes
+### Method 1: Git Clone (Recommended)
 
 ```bash
-# Navigate to ComfyUI custom_nodes directory
 cd ComfyUI/custom_nodes/
-
-# Create symlink or copy the plugin
-ln -s /path/to/fluxflow/comfyui_fluxflow ./comfyui_fluxflow
-
-# Install dependencies (if needed)
-pip install -r comfyui_fluxflow/requirements.txt
+git clone https://github.com/danny-mio/fluxflow-comfyui.git
+cd fluxflow-comfyui
+pip install -r requirements.txt
 ```
 
-### Method 2: Direct Installation
+### Method 2: Symlink for Development
 
 ```bash
-# Copy the entire plugin folder
-cp -r /path/to/fluxflow/comfyui_fluxflow /path/to/ComfyUI/custom_nodes/
-
-# Restart ComfyUI
+cd ComfyUI/custom_nodes/
+ln -s /path/to/fluxflow-comfyui ./fluxflow-comfyui
+pip install -r fluxflow-comfyui/requirements.txt
 ```
 
 ---
@@ -433,11 +428,11 @@ Same license as FluxFlow project.
 
 ## Author
 
-Daniele Camisani <daniele@camisani.it>
+Daniele Camisani
 
 ## Version
 
-0.1.0
+0.8.0
 
 ---
 

@@ -1,7 +1,5 @@
 # Contributing to FluxFlow ComfyUI
 
-Thank you for your interest in contributing to FluxFlow ComfyUI! This guide will help you get started with development.
-
 ## Quick Start for Developers
 
 ### 1. Setup Development Environment
@@ -192,7 +190,7 @@ This is a standalone repository, independently installable via pip.
 
 ## Pull Request Process
 
-1. **Create a branch** from `develop` or `main`
+1. **Create a branch** from `develop`
 2. **Make your changes** with tests and documentation
 3. **Run all checks**: `pre-commit run --all-files`
 4. **Commit with clear messages**:
@@ -281,4 +279,3 @@ By contributing, you agree that your contributions will be licensed under the MI
 
 ---
 
-**Thank you for contributing to FluxFlow ComfyUI!**

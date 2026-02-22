@@ -5,6 +5,9 @@
     },
     {
       "pattern": "^http://127.0.0.1"
+    },
+    {
+      "pattern": "^https://github.com/danny-mio/"
     }
   ],
   "replacementPatterns": [
@@ -25,5 +28,5 @@
   "retryOn429": true,
   "retryCount": 3,
   "fallbackRetryDelay": "30s",
-  "aliveStatusCodes": [200, 206, 299, 403, 502]
+  "aliveStatusCodes": [200, 206, 299, 403]
 }

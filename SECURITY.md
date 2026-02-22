@@ -6,9 +6,9 @@ We actively maintain and provide security updates for the following versions:
 
 | Version | Supported          |
 | ------- | ------------------ |
-| 0.3.x   | :white_check_mark: |
-| 0.2.x   | :x:                |
-| < 0.2   | :x:                |
+| 0.8.x   | :white_check_mark: |
+| 0.7.x   | :x:                |
+| < 0.7   | :x:                |
 
 ## Reporting a Vulnerability
 
@@ -156,8 +156,6 @@ We recognize security researchers who help keep FluxFlow secure:
 ## Additional Resources
 
 - [OWASP Secure Coding Practices](https://owasp.org/www-project-secure-coding-practices-quick-reference-guide/)
-- [PyTorch Security](https://pytorch.org/docs/stable/community/contribution_guide.html)
+- [PyTorch Security](https://pytorch.org/docs/stable/notes/security.html)
 
 ---
-
-**Last Updated**: December 14, 2025

@@ -13,7 +13,7 @@ FluxFlow ComfyUI is a custom nodes package for ComfyUI that integrates FluxFlow 
 - **Latent Generation**: Create empty latent tensors at various resolutions
 - **6 Custom Nodes**: Complete workflow for text-to-image generation
 
-**Version**: 0.1.0 (Beta)
+**Version**: 0.8.0
 
 ## Quick Commands
 
@@ -72,6 +72,7 @@ FluxFlow ComfyUI provides 6 custom nodes that integrate with ComfyUI's node grap
 
 ```
 fluxflow-comfyui/
+├── __init__.py                      # ComfyUI entry point (sys.path shim)
 ├── src/comfyui_fluxflow/
 │   ├── __init__.py              # Package init, node registration
 │   ├── nodes/
@@ -84,19 +85,12 @@ fluxflow-comfyui/
 │   ├── schedulers.py            # Scheduler implementations
 │   ├── standalone_schedulers.py # Standalone scheduler variants
 │   ├── model_inspector.py       # Checkpoint inspection utilities
-│   └── web/
-│       └── fluxflow_types.js    # JavaScript UI extensions
-├── tests/
-│   ├── conftest.py              # Shared pytest fixtures
-│   ├── test_nodes.py            # Node tests
-│   ├── test_schedulers.py       # Scheduler tests
-│   ├── test_model_loader.py     # Model loading tests
-│   └── test_model_inspector.py  # Inspector tests
-├── src/comfyui_fluxflow/
 │   ├── INSTALL.md               # Installation instructions
 │   ├── QUICKSTART.md            # Quick start guide
 │   ├── TROUBLESHOOTING.md       # Common issues
-│   └── README.md                # Package documentation
+│   ├── README.md                # Package documentation
+│   └── web/
+│       └── fluxflow_types.js    # JavaScript UI extensions
 ├── pyproject.toml               # Project configuration
 ├── Makefile                     # Build automation
 └── .pre-commit-config.yaml      # Pre-commit hooks
@@ -302,7 +296,7 @@ from transformers import DistilBertTokenizer
 from fluxflow.models import BertTextEncoder
 
 tokenizer = DistilBertTokenizer.from_pretrained('distilbert-base-uncased')
-encoder = BertTextEncoder(embed_dim=256)
+encoder = BertTextEncoder(embed_dim=1024)
 
 tokens = tokenizer(prompt, return_tensors='pt', max_length=512, truncation=True)
 embeddings = encoder(tokens['input_ids'], tokens['attention_mask'])
@@ -515,9 +509,13 @@ cd fluxflow-comfyui
 pip install -e .
 ```
 
-### Package Installation (Not Yet Available)
+### Package Installation
 
-Package not yet published to PyPI. Use development or git clone methods above.
+```bash
+pip install comfyui-fluxflow
+```
+
+Note: ComfyUI integration requires placing the package in `ComfyUI/custom_nodes/`. See git clone method above for the recommended ComfyUI workflow.
 
 ## Known Issues
 

@@ -6,7 +6,7 @@
 
 **Problem**: Dependency version conflict between ComfyUI's diffusers and huggingface_hub.
 
-**Solution**: This has been fixed in v1.0.1+ with lazy scheduler loading. Update the plugin:
+**Solution**: Update the plugin to the latest version which uses lazy scheduler loading:
 
 ```bash
 cd /path/to/fluxflow

@@ -55,7 +55,7 @@ dev = [
 [project.urls]
 Homepage = "https://github.com/danny-mio/fluxflow-comfyui"
 Repository = "https://github.com/danny-mio/fluxflow-comfyui"
-Documentation = "https://github.com/danny-mio/fluxflow-comfyui/tree/main/comfyui_fluxflow"
+Documentation = "https://github.com/danny-mio/fluxflow-comfyui/tree/main/src/comfyui_fluxflow"
 Issues = "https://github.com/danny-mio/fluxflow-comfyui/issues"
 
 [tool.setuptools.packages.find]
