@@ -126,9 +126,11 @@ class FluxFlowModelLoader:
 
                 text_encoder = BertTextEncoder(embed_dim=1024)  # Default for ComfyUI
 
-                # Ensure models are on device
+                # Ensure models are on device and in eval mode
                 pipeline.to(device_obj)
                 text_encoder.to(device_obj)
+                pipeline.eval()
+                text_encoder.eval()
 
                 # Extract version info
                 version = getattr(pipeline, "version", "unknown")
@@ -170,9 +172,11 @@ class FluxFlowModelLoader:
 
                     text_encoder = BertTextEncoder(embed_dim=1024)  # Default for ComfyUI
 
-                    # Ensure models are on device
+                    # Ensure models are on device and in eval mode
                     pipeline.to(device_obj)
                     text_encoder.to(device_obj)
+                    pipeline.eval()
+                    text_encoder.eval()
 
                     version = getattr(pipeline, "version", "legacy")
                     logger.info(f"Loaded legacy versioned checkpoint (v{version})")
