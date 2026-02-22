@@ -93,7 +93,7 @@ pip install -r fluxflow-comfyui/requirements.txt
 - `latent`: Random latent packet [B, T+1, D]
 
 **Notes**:
-- ⭐ **NEW**: Automatically inherits parameters from model (no manual configuration needed)
+- Automatically inherits parameters from model (no manual configuration needed)
 - Latent format: [B, T+1, D] where T depends on model's downscale settings
 - Last token (+1) encodes spatial dimensions
 
@@ -375,6 +375,8 @@ If you get dimension errors:
 ## Development
 
 ### Project Structure
+
+Structure of the `src/comfyui_fluxflow/` package directory:
 
 ```
 comfyui_fluxflow/

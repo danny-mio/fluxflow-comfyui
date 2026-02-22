@@ -490,32 +490,7 @@ Publishing to PyPI triggers on version tags (`v*`).
 
 ## Installation Methods
 
-### Development (Recommended)
-
-```bash
-# Symlink into ComfyUI custom_nodes
-cd ComfyUI/custom_nodes
-ln -s /path/to/fluxflow-comfyui fluxflow-comfyui
-cd fluxflow-comfyui
-pip install -e ".[dev]"
-```
-
-### Production (Git Clone)
-
-```bash
-cd ComfyUI/custom_nodes
-git clone https://github.com/danny-mio/fluxflow-comfyui.git
-cd fluxflow-comfyui
-pip install -e .
-```
-
-### Package Installation
-
-```bash
-pip install comfyui-fluxflow
-```
-
-Note: ComfyUI integration requires placing the package in `ComfyUI/custom_nodes/`. See git clone method above for the recommended ComfyUI workflow.
+See [README.md](src/comfyui_fluxflow/README.md) for canonical installation instructions.
 
 ## Known Issues
 

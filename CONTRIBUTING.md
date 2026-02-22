@@ -272,4 +272,3 @@ For security vulnerabilities, see [SECURITY.md](SECURITY.md).
 By contributing, you agree that your contributions will be licensed under the MIT License.
 
 ---
-
