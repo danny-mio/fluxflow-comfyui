@@ -61,7 +61,16 @@ class FluxFlowEmptyLatent:
         downscales = model.compressor.downscales
         max_hw = model.compressor.max_hw
 
-        print(f"Auto-detected: vae_dim={vae_dim}, downscales={downscales}, max_hw={max_hw}")
+        # Context dims added by the compressor (e.g. 5 for v0.7.0+)
+        context_dims = 0
+        if hasattr(model.compressor, "get_context_dims"):
+            context_dims = model.compressor.get_context_dims()
+
+        total_dim = vae_dim + context_dims
+
+        print(
+            f"Auto-detected: vae_dim={vae_dim}, context_dims={context_dims}, downscales={downscales}, max_hw={max_hw}"
+        )
 
         # Set random seed
         generator = torch.Generator().manual_seed(seed)
@@ -72,16 +81,21 @@ class FluxFlowEmptyLatent:
         W_lat = max(width // compression, 1)
         T = H_lat * W_lat
 
-        # Generate random tokens
-        tokens = torch.randn(batch_size, T, vae_dim, generator=generator, dtype=torch.float32)
+        # Generate random VAE tokens; context dims start at zero (no image source)
+        noise = torch.randn(batch_size, T, vae_dim, generator=generator, dtype=torch.float32)
+        if context_dims > 0:
+            ctx_zeros = torch.zeros(batch_size, T, context_dims, dtype=torch.float32)
+            tokens = torch.cat([noise, ctx_zeros], dim=-1)  # [B, T, D+ctx]
+        else:
+            tokens = noise
 
-        # Create HW vector
-        hw_vec = torch.zeros(batch_size, 1, vae_dim, dtype=torch.float32)
+        # Create HW vector (full total_dim; H/W encoded in first 2 dims)
+        hw_vec = torch.zeros(batch_size, 1, total_dim, dtype=torch.float32)
         hw_vec[:, 0, 0] = H_lat / float(max_hw)
         hw_vec[:, 0, 1] = W_lat / float(max_hw)
 
         # Pack latent
-        latent = torch.cat([tokens, hw_vec], dim=1)  # [B, T+1, D]
+        latent = torch.cat([tokens, hw_vec], dim=1)  # [B, T+1, D+ctx]
 
         print(
             f"Generated latent: {latent.shape} for image size {width}x{height} "
