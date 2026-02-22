@@ -178,16 +178,14 @@ class FluxFlowModelLoader:
                     logger.info(f"Loaded legacy versioned checkpoint (v{version})")
 
                     # Extract dimensions
-                    vae_dim = (
-                        diffuser.compressor.d_model
-                        if hasattr(diffuser, "compressor")
-                        else "unknown"
+                    has_vae_dim = hasattr(diffuser, "compressor") and hasattr(
+                        diffuser.compressor, "d_model"
                     )
-                    flow_dim = (
-                        diffuser.flow_processor.d_model
-                        if hasattr(diffuser, "flow_processor")
-                        else "unknown"
+                    vae_dim = diffuser.compressor.d_model if has_vae_dim else "unknown"
+                    has_flow_dim = hasattr(diffuser, "flow_processor") and hasattr(
+                        diffuser.flow_processor, "d_model"
                     )
+                    flow_dim = diffuser.flow_processor.d_model if has_flow_dim else "unknown"
                     text_embed_dim = (
                         text_encoder.embed_dim if hasattr(text_encoder, "embed_dim") else "unknown"
                     )
