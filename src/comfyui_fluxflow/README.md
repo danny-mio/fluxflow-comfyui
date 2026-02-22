@@ -4,26 +4,26 @@ A comprehensive ComfyUI plugin for using FluxFlow diffusion models with automati
 
 ## Features
 
-### 🎯 Automatic Configuration Detection
+### Automatic Configuration Detection
 - **Zero Manual Configuration**: Automatically detects all model dimensions from checkpoint
 - **Multi-Model Support**: Works with any FluxFlow model size (32d to 128d+ VAE dimensions)
 - **Intelligent Validation**: Cross-checks detected parameters for consistency
 
-### 🎨 Complete FluxFlow Workflow
+### Complete FluxFlow Workflow
 - **Model Loading**: Auto-detecting checkpoint loader
 - **Empty Latent Generation**: Create random latents for target dimensions
 - **VAE Encode/Decode**: Full image ↔ latent conversion
 - **Text Conditioning**: DistilBERT text encoding
 - **Flow Sampling**: Advanced denoising with 14 schedulers
 
-### ⚡ Advanced Sampling
+### Advanced Sampling
 - **14 Schedulers**: DPM++, DPM++ Karras, Euler, DDIM, LCM, UniPC, and more
 - **Standalone Fallback**: Works even with broken diffusers installations
 - **Prediction Types**: v_prediction, epsilon, sample
 - **Reproducible**: Seed control for deterministic generation
 - **Flexible**: Configurable steps, scheduler parameters
 
-### 🔧 ComfyUI Native
+### ComfyUI Native
 - **Proper Tensor Formats**: Automatic conversion between ComfyUI and FluxFlow formats
 - **Native Integration**: Works seamlessly with other ComfyUI nodes
 - **Progress Logging**: Detailed console output for debugging
@@ -32,26 +32,21 @@ A comprehensive ComfyUI plugin for using FluxFlow diffusion models with automati
 
 ## Installation
 
-### Method 1: Copy to ComfyUI Custom Nodes
+### Method 1: Git Clone (Recommended)
 
 ```bash
-# Navigate to ComfyUI custom_nodes directory
 cd ComfyUI/custom_nodes/
-
-# Create symlink or copy the plugin
-ln -s /path/to/fluxflow/comfyui_fluxflow ./comfyui_fluxflow
-
-# Install dependencies (if needed)
-pip install -r comfyui_fluxflow/requirements.txt
+git clone https://github.com/danny-mio/fluxflow-comfyui.git
+cd fluxflow-comfyui
+pip install -r requirements.txt
 ```
 
-### Method 2: Direct Installation
+### Method 2: Symlink for Development
 
 ```bash
-# Copy the entire plugin folder
-cp -r /path/to/fluxflow/comfyui_fluxflow /path/to/ComfyUI/custom_nodes/
-
-# Restart ComfyUI
+cd ComfyUI/custom_nodes/
+ln -s /path/to/fluxflow-comfyui ./fluxflow-comfyui
+pip install -r fluxflow-comfyui/requirements.txt
 ```
 
 ---
@@ -98,7 +93,7 @@ cp -r /path/to/fluxflow/comfyui_fluxflow /path/to/ComfyUI/custom_nodes/
 - `latent`: Random latent packet [B, T+1, D]
 
 **Notes**:
-- ⭐ **NEW**: Automatically inherits parameters from model (no manual configuration needed)
+- Automatically inherits parameters from model (no manual configuration needed)
 - Latent format: [B, T+1, D] where T depends on model's downscale settings
 - Last token (+1) encodes spatial dimensions
 
@@ -381,6 +376,8 @@ If you get dimension errors:
 
 ### Project Structure
 
+Structure of the `src/comfyui_fluxflow/` package directory:
+
 ```
 comfyui_fluxflow/
 ├── __init__.py                   # Plugin entry point
@@ -431,23 +428,13 @@ SCHEDULER_DEFAULTS = {
 
 Same license as FluxFlow project.
 
-## Author
-
-Daniele Camisani <daniele@camisani.it>
-
-## Version
-
-0.1.0
-
----
-
 ## Changelog
 
+See [CHANGELOG.md](CHANGELOG.md) for the full version history.
+
+### v0.8.0 (2026-02-21)
+- v0.8.0 checkpoint detection in `FluxFlowModelLoader` (pillar-attention weights)
+- Updated `fluxflow` dependency to `>=0.8.0`
+
 ### v0.1.0 (2025-01-13)
-- Initial release
-- Automatic configuration detection from checkpoints
-- 14 scheduler support
-- Complete VAE encode/decode
-- Text conditioning with DistilBERT
-- Native ComfyUI integration
-- Comprehensive documentation
+- Initial release: 6 nodes, 14 schedulers, automatic configuration detection

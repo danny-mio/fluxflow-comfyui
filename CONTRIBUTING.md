@@ -1,7 +1,5 @@
 # Contributing to FluxFlow ComfyUI
 
-Thank you for your interest in contributing to FluxFlow ComfyUI! This guide will help you get started with development.
-
 ## Quick Start for Developers
 
 ### 1. Setup Development Environment
@@ -124,9 +122,8 @@ def process_data(input_path: str, output_path: Optional[str] = None) -> dict[str
 All new code should include tests:
 
 ```bash
-# Create test file in appropriate directory
-tests/unit/test_your_feature.py
-tests/integration/test_your_workflow.py
+# Create test file in tests/
+tests/test_your_feature.py
 ```
 
 ### Test Structure
@@ -145,7 +142,7 @@ class TestYourClass:
         """Test basic functionality works."""
         obj = YourClass()
         result = obj.method()
-        assert result == expected
+        assert result is not None
 
     def test_error_handling(self):
         """Test error handling."""
@@ -159,14 +156,11 @@ class TestYourClass:
 # All tests
 pytest tests/ -v
 
-# Fast tests only (unit tests)
-pytest tests/unit/ -v
-
 # Specific test file
-pytest tests/unit/test_your_feature.py -v
+pytest tests/test_your_feature.py -v
 
 # Specific test function
-pytest tests/unit/test_your_feature.py::test_function_name -v
+pytest tests/test_your_feature.py::test_function_name -v
 ```
 
 ## Project Structure
@@ -180,9 +174,7 @@ fluxflow-comfyui/
 │       ├── schedulers.py       # Scheduler factory
 │       ├── model_inspector.py  # Auto-detection
 │       └── web/                # JavaScript extensions
-├── tests/                      # Test suite
-│   ├── unit/                   # Unit tests
-│   └── integration/            # Integration tests
+├── tests/                      # Test suite (flat structure)
 ├── pyproject.toml              # Project configuration
 ├── AGENTS.md                   # Code style reference
 └── README.md                   # User documentation
@@ -192,7 +184,7 @@ This is a standalone repository, independently installable via pip.
 
 ## Pull Request Process
 
-1. **Create a branch** from `develop` or `main`
+1. **Create a branch** from `develop`
 2. **Make your changes** with tests and documentation
 3. **Run all checks**: `pre-commit run --all-files`
 4. **Commit with clear messages**:
@@ -280,5 +272,3 @@ For security vulnerabilities, see [SECURITY.md](SECURITY.md).
 By contributing, you agree that your contributions will be licensed under the MIT License.
 
 ---
-
-**Thank you for contributing to FluxFlow ComfyUI!**

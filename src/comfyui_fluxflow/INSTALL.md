@@ -10,16 +10,28 @@
 
 ### 2. Installation
 
-**Symlink Installation (Recommended)**
-
-This is the recommended method for development.
+**Git Clone (Recommended)**
 
 ```bash
 # Navigate to ComfyUI custom_nodes directory
 cd /path/to/ComfyUI/custom_nodes/
 
-# Create symlink to plugin (MUST use absolute path)
-ln -s /absolute/path/to/fluxflow-comfyui/src/comfyui_fluxflow ./comfyui_fluxflow
+# Clone the repository
+git clone https://github.com/danny-mio/fluxflow-comfyui.git
+cd fluxflow-comfyui
+pip install -r requirements.txt
+```
+
+**Symlink Installation (Development only)**
+
+```bash
+# Navigate to ComfyUI custom_nodes directory
+cd /path/to/ComfyUI/custom_nodes/
+
+# Create symlink to repo root (MUST use absolute path)
+ln -s /absolute/path/to/fluxflow-comfyui ./fluxflow-comfyui
+cd fluxflow-comfyui
+pip install -r requirements.txt
 ```
 
 ### 3. Verify Installation
@@ -105,7 +117,7 @@ Ensure FluxFlow `src/` directory is accessible from plugin.
 
 ## Next Steps
 
-See [README.md](README.md) for:
+See the [package README](README.md) for:
 - Complete node documentation
 - Example workflows
 - Advanced configuration
