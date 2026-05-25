@@ -126,7 +126,9 @@ class FluxFlowSampler:
         with torch.no_grad():
             for i, t in enumerate(scheduler_obj.timesteps):
                 # Create timestep batch
-                t_batch = torch.full((lat.size(0),), t.item(), device=device, dtype=torch.long)
+                t_batch = torch.full(
+                    (lat.size(0),), t.item() / 999.0, device=device, dtype=torch.float32
+                )
 
                 # Prepare input for flow processor
                 full_input = torch.cat([lat, hw_vec], dim=1)

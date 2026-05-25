@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "comfyui-fluxflow"
-version = "0.8.0"
+version = "0.10.0"
 description = "ComfyUI custom nodes for FluxFlow text-to-image generation"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -27,7 +27,8 @@ classifiers = [
 ]
 
 dependencies = [
-    "fluxflow>=0.8.0",
+    # Feature-branch pin — revert to "fluxflow>=0.10.0" after PyPI release.
+    "fluxflow @ git+https://github.com/danny-mio/fluxflow-core.git@feature/model-v0.10.0",
     "torch>=2.0.0",
     "torchvision>=0.15.0",
     "transformers>=4.30.0",

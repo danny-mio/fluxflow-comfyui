@@ -81,13 +81,10 @@ class FluxFlowEmptyLatent:
         W_lat = max(width // compression, 1)
         T = H_lat * W_lat
 
-        # Generate random VAE tokens; context dims start at zero (no image source)
-        noise = torch.randn(batch_size, T, vae_dim, generator=generator, dtype=torch.float32)
-        if context_dims > 0:
-            ctx_zeros = torch.zeros(batch_size, T, context_dims, dtype=torch.float32)
-            tokens = torch.cat([noise, ctx_zeros], dim=-1)  # [B, T, D+ctx]
-        else:
-            tokens = noise
+        # All dims (vae + context) start from N(0,I) — training noises all dims uniformly
+        tokens = torch.randn(
+            batch_size, T, vae_dim + context_dims, generator=generator, dtype=torch.float32
+        )
 
         # Create HW vector (full total_dim; H/W encoded in first 2 dims)
         hw_vec = torch.zeros(batch_size, 1, total_dim, dtype=torch.float32)
