@@ -98,9 +98,7 @@ def _get_scheduler_class(name: str):  # noqa: C901
             _SCHEDULER_CLASSES[name] = DPMSolverSinglestepScheduler
         elif name == "DPMSolverSDEScheduler":
             try:
-                from diffusers.schedulers.scheduling_dpmsolver_sde import (
-                    DPMSolverSDEScheduler,
-                )
+                from diffusers.schedulers.scheduling_dpmsolver_sde import DPMSolverSDEScheduler
 
                 _SCHEDULER_CLASSES[name] = DPMSolverSDEScheduler
             except ImportError as e:
@@ -113,9 +111,7 @@ def _get_scheduler_class(name: str):  # noqa: C901
                 else:
                     raise
         elif name == "EulerDiscreteScheduler":
-            from diffusers.schedulers.scheduling_euler_discrete import (
-                EulerDiscreteScheduler,
-            )
+            from diffusers.schedulers.scheduling_euler_discrete import EulerDiscreteScheduler
 
             _SCHEDULER_CLASSES[name] = EulerDiscreteScheduler
         elif name == "EulerAncestralDiscreteScheduler":
@@ -125,15 +121,11 @@ def _get_scheduler_class(name: str):  # noqa: C901
 
             _SCHEDULER_CLASSES[name] = EulerAncestralDiscreteScheduler
         elif name == "HeunDiscreteScheduler":
-            from diffusers.schedulers.scheduling_heun_discrete import (
-                HeunDiscreteScheduler,
-            )
+            from diffusers.schedulers.scheduling_heun_discrete import HeunDiscreteScheduler
 
             _SCHEDULER_CLASSES[name] = HeunDiscreteScheduler
         elif name == "KDPM2DiscreteScheduler":
-            from diffusers.schedulers.scheduling_k_dpm_2_discrete import (
-                KDPM2DiscreteScheduler,
-            )
+            from diffusers.schedulers.scheduling_k_dpm_2_discrete import KDPM2DiscreteScheduler
 
             _SCHEDULER_CLASSES[name] = KDPM2DiscreteScheduler
         elif name == "KDPM2AncestralDiscreteScheduler":
@@ -147,15 +139,11 @@ def _get_scheduler_class(name: str):  # noqa: C901
 
             _SCHEDULER_CLASSES[name] = LCMScheduler
         elif name == "UniPCMultistepScheduler":
-            from diffusers.schedulers.scheduling_unipc_multistep import (
-                UniPCMultistepScheduler,
-            )
+            from diffusers.schedulers.scheduling_unipc_multistep import UniPCMultistepScheduler
 
             _SCHEDULER_CLASSES[name] = UniPCMultistepScheduler
         elif name == "DEISMultistepScheduler":
-            from diffusers.schedulers.scheduling_deis_multistep import (
-                DEISMultistepScheduler,
-            )
+            from diffusers.schedulers.scheduling_deis_multistep import DEISMultistepScheduler
 
             _SCHEDULER_CLASSES[name] = DEISMultistepScheduler
         else:

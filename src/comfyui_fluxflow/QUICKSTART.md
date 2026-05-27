@@ -23,7 +23,7 @@ pip install -r requirements.txt
 In ComfyUI interface, add these nodes (search for "FluxFlow"):
 
 1. **FluxFlow Model Loader**
-2. **FluxFlow Empty Latent**  
+2. **FluxFlow Empty Latent**
 3. **FluxFlow Text Encode**
 4. **FluxFlow Sampler**
 5. **FluxFlow VAE Decode**
@@ -109,4 +109,3 @@ Compression Ratio:     16x
 ```
 
 No manual configuration needed!
-

@@ -2,15 +2,9 @@
 Comprehensive tests for Classifier-Free Guidance (CFG) functionality.
 """
 
-from comfyui_fluxflow import (
-    NODE_CLASS_MAPPINGS,
-    NODE_DISPLAY_NAME_MAPPINGS,
-)
+from comfyui_fluxflow import NODE_CLASS_MAPPINGS, NODE_DISPLAY_NAME_MAPPINGS
 from comfyui_fluxflow.nodes.samplers import FluxFlowSampler
-from comfyui_fluxflow.nodes.text_encode import (
-    FluxFlowTextEncode,
-    FluxFlowTextEncodeNegative,
-)
+from comfyui_fluxflow.nodes.text_encode import FluxFlowTextEncode, FluxFlowTextEncodeNegative
 
 
 class TestCFGNodeRegistration:

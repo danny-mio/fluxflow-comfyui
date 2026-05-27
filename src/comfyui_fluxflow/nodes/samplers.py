@@ -6,11 +6,7 @@ Denoises latent using flow model with configurable schedulers.
 
 import torch
 
-from comfyui_fluxflow.schedulers import (
-    PREDICTION_TYPES,
-    create_scheduler,
-    get_scheduler_list,
-)
+from comfyui_fluxflow.schedulers import PREDICTION_TYPES, create_scheduler, get_scheduler_list
 
 
 class FluxFlowSampler:

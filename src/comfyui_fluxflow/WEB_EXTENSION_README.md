@@ -43,7 +43,7 @@ Custom types added via JavaScript extensions **cannot override the rendering pip
 
 ### Color Registration (Registered but Not Rendered)
 - Purple: `FLUXFLOW_MODEL`
-- Green: `FLUXFLOW_TEXT_ENCODER` 
+- Green: `FLUXFLOW_TEXT_ENCODER`
 - Dark Green: `FLUXFLOW_TOKENIZER`
 - Amber: `FLUXFLOW_CONDITIONING`
 - Blue: `FLUXFLOW_LATENT`
