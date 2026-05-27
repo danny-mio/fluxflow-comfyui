@@ -191,6 +191,9 @@ SCHEDULER_NAMES = [
 # Default configurations for each scheduler
 SCHEDULER_DEFAULTS = {
     "DPMSolverMultistep": {
+        "beta_schedule": "scaled_linear",
+        "beta_start": 0.00085,
+        "beta_end": 0.012,
         "algorithm_type": "dpmsolver++",
         "solver_order": 2,
         "prediction_type": "v_prediction",
