@@ -5,6 +5,7 @@ Automatically detects model configuration from checkpoint and initializes all co
 """
 
 import logging
+from pathlib import Path
 
 import safetensors.torch
 import torch
@@ -24,6 +25,21 @@ from comfyui_fluxflow.model_inspector import get_model_info
 from comfyui_fluxflow.nodes.utils import parse_device
 
 logger = logging.getLogger(__name__)
+
+
+def _load_text_encoder_weights(text_encoder: BertTextEncoder, checkpoint_path: str) -> bool:
+    """Load text encoder from sibling text_encoder.safetensors; return True if loaded."""
+    cp = Path(checkpoint_path)
+    te_path = (
+        cp / "text_encoder.safetensors" if cp.is_dir() else cp.parent / "text_encoder.safetensors"
+    )
+    if not te_path.exists():
+        return False
+    te_state = safetensors.torch.load_file(str(te_path))
+    te_state = {k.replace("text_encoder.", ""): v for k, v in te_state.items()}
+    text_encoder.load_state_dict(te_state, strict=False)
+    logger.info(f"Loaded text encoder weights from {te_path.name}")
+    return True
 
 
 class FluxFlowModelLoader:
@@ -94,8 +110,6 @@ class FluxFlowModelLoader:
         Returns:
             (model, text_encoder, tokenizer, config_info)
         """
-        from pathlib import Path
-
         logger.info("=" * 60)
         logger.info("FluxFlow Model Loader")
         logger.info("=" * 60)
@@ -125,6 +139,7 @@ class FluxFlowModelLoader:
                     tokenizer.add_special_tokens({"pad_token": "[PAD]"})
 
                 text_encoder = BertTextEncoder(embed_dim=1024)  # Default for ComfyUI
+                _load_text_encoder_weights(text_encoder, checkpoint_path)
 
                 # Ensure models are on device and in eval mode
                 pipeline.to(device_obj)
@@ -171,6 +186,7 @@ class FluxFlowModelLoader:
                         tokenizer.add_special_tokens({"pad_token": "[PAD]"})
 
                     text_encoder = BertTextEncoder(embed_dim=1024)  # Default for ComfyUI
+                    _load_text_encoder_weights(text_encoder, checkpoint_path)
 
                     # Ensure models are on device and in eval mode
                     pipeline.to(device_obj)
@@ -325,13 +341,14 @@ class FluxFlowModelLoader:
             if unexpected_keys:
                 logger.debug(f"{len(unexpected_keys)} unexpected keys in checkpoint (ignored)")
 
-            # Load text encoder state
-            text_encoder_state = {
-                k.replace("text_encoder.", ""): v
-                for k, v in state_dict.items()
-                if k.startswith("text_encoder.")
-            }
-            text_encoder.load_state_dict(text_encoder_state, strict=False)
+            # Load text encoder weights from sibling file or inline keys
+            if not _load_text_encoder_weights(text_encoder, checkpoint_path):
+                text_encoder_state = {
+                    k.replace("text_encoder.", ""): v
+                    for k, v in state_dict.items()
+                    if k.startswith("text_encoder.")
+                }
+                text_encoder.load_state_dict(text_encoder_state, strict=False)
 
             # Move to device and set eval mode
             diffuser = diffuser.to(device_obj)
