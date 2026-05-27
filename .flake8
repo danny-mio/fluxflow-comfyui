@@ -30,7 +30,8 @@ exclude =
 
 per-file-ignores =
     # __init__.py files can have unused imports (re-exports)
-    __init__.py:F401,F403
+    # Top-level __init__.py needs E402 suppressed: sys.path shim must precede imports (ComfyUI)
+    __init__.py:F401,F403,E402
     # Tests can have long lines for test data
     tests/*:E501
 

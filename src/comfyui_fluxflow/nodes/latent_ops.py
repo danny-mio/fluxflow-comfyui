@@ -156,9 +156,6 @@ class FluxFlowVAEDecode:
                 "model": ("FLUXFLOW_MODEL",),
                 "latent": ("FLUXFLOW_LATENT",),
             },
-            "optional": {
-                "use_context": (["true", "false"], {"default": "true"}),
-            },
         }
 
     RETURN_TYPES = ("IMAGE",)
@@ -166,28 +163,24 @@ class FluxFlowVAEDecode:
     FUNCTION = "decode"
     CATEGORY = "FluxFlow/latent"
 
-    def decode(self, model, latent, use_context="true"):
+    def decode(self, model, latent):
         """
         Decode latent to image.
 
         Args:
             model: FluxFlow pipeline
             latent: Latent packet [B, T+1, D]
-            use_context: Enable context conditioning ("true" or "false")
 
         Returns:
             (image,) - ComfyUI image [B, H, W, C] in [0, 1]
         """
-        # Convert string to boolean
-        use_context_bool = use_context == "true"
-
         # Move to model device
         device = next(model.parameters()).device
         latent = latent.to(device)
 
-        # Decode
+        # Decode (SPADE/context always active)
         with torch.no_grad():
-            flux_image = model.expander(latent, use_context=use_context_bool)  # [B, C, H, W]
+            flux_image = model.expander(latent)  # [B, C, H, W]
 
         # Convert FluxFlow format to ComfyUI format
         comfy_image = flux_image_to_comfy(flux_image)  # [B, H, W, C] in [0, 1]

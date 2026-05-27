@@ -222,6 +222,15 @@ class TestFluxFlowVAEDecode:
 
         assert input_types["required"]["latent"][0] == "FLUXFLOW_LATENT"
 
+    def test_no_use_context_optional(self):
+        """use_context optional input must be removed; SPADE/context always active."""
+        input_types = FluxFlowVAEDecode.INPUT_TYPES()
+        optional = input_types.get("optional", {})
+        assert "use_context" not in optional, (
+            "FluxFlowVAEDecode still exposes use_context as an optional input. "
+            "SPADE/context is now always active; the toggle must be removed."
+        )
+
     def test_return_types(self):
         """Should return IMAGE (ComfyUI standard)."""
         assert FluxFlowVAEDecode.RETURN_TYPES == ("IMAGE",)
