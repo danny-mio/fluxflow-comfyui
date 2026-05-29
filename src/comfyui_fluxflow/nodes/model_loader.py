@@ -227,7 +227,7 @@ class FluxFlowModelLoader:
                 if checkpoint_path.endswith(".safetensors"):
                     state_dict = safetensors.torch.load_file(checkpoint_path)
                 else:
-                    state_dict = torch.load(checkpoint_path, map_location="cpu")
+                    state_dict = torch.load(checkpoint_path, map_location="cpu", weights_only=True)
                 keys = list(state_dict.keys())
 
                 # Check for v0.8.0 features (pillar-attention)
