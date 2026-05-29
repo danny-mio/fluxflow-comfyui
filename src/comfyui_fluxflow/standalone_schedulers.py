@@ -29,7 +29,7 @@ class FlowMatchingScheduler:
     def set_timesteps(self, num_inference_steps: int, device: Optional[torch.device] = None):
         """Set the discrete timesteps for inference."""
         self.timesteps = torch.linspace(
-            0, self.num_train_timesteps - 1, num_inference_steps, device=device
+            self.num_train_timesteps - 1, 0, num_inference_steps, device=device
         )
 
     def step(
@@ -66,7 +66,7 @@ class FlowMatchingScheduler:
         dt = 1.0 / len(self.timesteps)
 
         # Euler step: x_{t-dt} = x_t - dt * v_t
-        prev_sample = sample - dt * self.num_train_timesteps * model_output
+        prev_sample = sample - dt * model_output
 
         return prev_sample
 
@@ -114,7 +114,8 @@ class EulerScheduler:
         dt = (self.timesteps[t_idx + 1] - self.timesteps[t_idx]) / self.num_train_timesteps
 
         # Euler step
-        prev_sample = sample + dt * self.num_train_timesteps * model_output
+        # TODO: verify Euler sign against diffusers reference after timestep direction fix
+        prev_sample = sample + dt * model_output
 
         return prev_sample
 

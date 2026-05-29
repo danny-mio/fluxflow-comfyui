@@ -82,6 +82,9 @@ class FluxFlowSampler:
         print(f"  Steps: {steps}")
         print(f"  Prediction type: {prediction_type}")
         print(f"  Seed: {seed}")
+        torch.manual_seed(seed)
+        if torch.cuda.is_available():
+            torch.cuda.manual_seed_all(seed)
         print(f"  CFG enabled: {use_cfg}")
         if use_cfg:
             print(f"  Guidance scale: {guidance_scale}")

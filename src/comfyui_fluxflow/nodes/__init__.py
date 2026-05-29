@@ -3,7 +3,7 @@
 from .latent_ops import FluxFlowEmptyLatent, FluxFlowVAEDecode, FluxFlowVAEEncode
 from .model_loader import FluxFlowModelLoader
 from .samplers import FluxFlowSampler
-from .text_encode import FluxFlowTextEncode
+from .text_encode import FluxFlowTextEncode, FluxFlowTextEncodeNegative
 
 __all__ = [
     "FluxFlowModelLoader",
@@ -11,5 +11,6 @@ __all__ = [
     "FluxFlowVAEEncode",
     "FluxFlowVAEDecode",
     "FluxFlowTextEncode",
+    "FluxFlowTextEncodeNegative",
     "FluxFlowSampler",
 ]
