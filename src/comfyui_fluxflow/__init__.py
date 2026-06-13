@@ -56,7 +56,7 @@ NODE_COLORS = {
     "FLUXFLOW_MODEL": "#8B5CF6",  # Purple - main model
     "FLUXFLOW_TEXT_ENCODER": "#10B981",  # Green - text processing
     "FLUXFLOW_TOKENIZER": "#059669",  # Dark green - text processing
-    "FLUXFLOW_CONDITIONING": "#F59E0B",  # Amber - conditioning data
+    "FLUXFLOW_TEXT": "#F59E0B",  # Amber - per-token (text_seq, text_mask) tuple
     "FLUXFLOW_LATENT": "#3B82F6",  # Blue - latent space
 }
 

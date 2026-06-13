@@ -65,7 +65,7 @@ class TestNodeRegistration:
         assert "FLUXFLOW_MODEL" in NODE_COLORS
         assert "FLUXFLOW_TEXT_ENCODER" in NODE_COLORS
         assert "FLUXFLOW_TOKENIZER" in NODE_COLORS
-        assert "FLUXFLOW_CONDITIONING" in NODE_COLORS
+        assert "FLUXFLOW_TEXT" in NODE_COLORS
         assert "FLUXFLOW_LATENT" in NODE_COLORS
 
     def test_node_colors_valid_hex(self):
@@ -282,8 +282,8 @@ class TestFluxFlowTextEncode:
         assert text_config.get("multiline") is True
 
     def test_return_types(self):
-        """Should return FLUXFLOW_CONDITIONING."""
-        assert FluxFlowTextEncode.RETURN_TYPES == ("FLUXFLOW_CONDITIONING",)
+        """Should return FLUXFLOW_TEXT (per-token text_seq + text_mask tuple)."""
+        assert FluxFlowTextEncode.RETURN_TYPES == ("FLUXFLOW_TEXT",)
 
     def test_function_name(self):
         """Function should be encode."""
@@ -305,12 +305,12 @@ class TestFluxFlowSampler:
         assert "optional" in input_types
 
     def test_required_inputs(self):
-        """Should require model, latent, conditioning, steps, scheduler."""
+        """Should require model, latent, text, steps, scheduler."""
         input_types = FluxFlowSampler.INPUT_TYPES()
 
         assert "model" in input_types["required"]
         assert "latent" in input_types["required"]
-        assert "conditioning" in input_types["required"]
+        assert "text" in input_types["required"]
         assert "steps" in input_types["required"]
         assert "scheduler" in input_types["required"]
 
@@ -326,11 +326,11 @@ class TestFluxFlowSampler:
 
         assert input_types["required"]["latent"][0] == "FLUXFLOW_LATENT"
 
-    def test_conditioning_type(self):
-        """conditioning should be FLUXFLOW_CONDITIONING."""
+    def test_text_type(self):
+        """text should be FLUXFLOW_TEXT (per-token text_seq + text_mask tuple)."""
         input_types = FluxFlowSampler.INPUT_TYPES()
 
-        assert input_types["required"]["conditioning"][0] == "FLUXFLOW_CONDITIONING"
+        assert input_types["required"]["text"][0] == "FLUXFLOW_TEXT"
 
     def test_steps_config(self):
         """steps should be INT with sensible defaults."""
@@ -418,12 +418,12 @@ class TestNodeWorkflow:
 
         assert empty_output == sampler_input == "FLUXFLOW_LATENT"
 
-    def test_text_encode_output_matches_sampler_conditioning(self):
-        """TextEncode output should match Sampler conditioning input."""
+    def test_text_encode_output_matches_sampler_text(self):
+        """TextEncode output should match Sampler text input."""
         text_output = FluxFlowTextEncode.RETURN_TYPES[0]
-        sampler_input = FluxFlowSampler.INPUT_TYPES()["required"]["conditioning"][0]
+        sampler_input = FluxFlowSampler.INPUT_TYPES()["required"]["text"][0]
 
-        assert text_output == sampler_input == "FLUXFLOW_CONDITIONING"
+        assert text_output == sampler_input == "FLUXFLOW_TEXT"
 
     def test_vae_encode_output_matches_sampler_input(self):
         """VAEEncode output should match Sampler latent input."""
@@ -550,6 +550,40 @@ class TestNodeComfyUICompliance:
                 assert len(node.RETURN_TYPES) == len(node.RETURN_NAMES)
 
 
+class TestFluxFlowTextCompatBreak:
+    """Tests for the v0.10.0 FLUXFLOW_TEXT compat break.
+
+    Old workflows referencing FLUXFLOW_CONDITIONING must fail at load with a
+    clear type mismatch, not silently silently succeed and crash later.
+    """
+
+    def test_text_encode_no_longer_emits_conditioning(self):
+        """TextEncode must not still emit the legacy FLUXFLOW_CONDITIONING type."""
+        assert "FLUXFLOW_CONDITIONING" not in FluxFlowTextEncode.RETURN_TYPES
+
+    def test_negative_text_encode_no_longer_emits_conditioning(self):
+        """Negative TextEncode must not still emit FLUXFLOW_CONDITIONING."""
+        from comfyui_fluxflow.nodes.text_encode import FluxFlowTextEncodeNegative
+
+        assert "FLUXFLOW_CONDITIONING" not in FluxFlowTextEncodeNegative.RETURN_TYPES
+
+    def test_sampler_no_longer_accepts_conditioning(self):
+        """Sampler must not still accept FLUXFLOW_CONDITIONING.
+
+        Workflows that wired the old type into the sampler will hit a
+        type-mismatch error when ComfyUI tries to validate them.
+        """
+        input_types = FluxFlowSampler.INPUT_TYPES()
+        required_types = {name: spec[0] for name, spec in input_types["required"].items()}
+        optional_types = {name: spec[0] for name, spec in input_types.get("optional", {}).items()}
+        all_types = {**required_types, **optional_types}
+
+        assert "FLUXFLOW_CONDITIONING" not in all_types.values()
+        # The new key is 'text' (positive) and 'negative_text' (CFG)
+        assert "conditioning" not in required_types
+        assert "negative_conditioning" not in optional_types
+
+
 class TestCustomTypeConsistency:
     """Tests for custom type consistency across nodes."""
 
@@ -587,11 +621,11 @@ class TestCustomTypeConsistency:
             assert "latent" in inputs["required"]
             assert inputs["required"]["latent"][0] == "FLUXFLOW_LATENT"
 
-    def test_fluxflow_conditioning_type_consistent(self):
-        """FLUXFLOW_CONDITIONING should be used consistently."""
-        # Node that produces conditioning
-        assert "FLUXFLOW_CONDITIONING" in FluxFlowTextEncode.RETURN_TYPES
+    def test_fluxflow_text_type_consistent(self):
+        """FLUXFLOW_TEXT should be used consistently across TextEncode and Sampler."""
+        # Node that produces FLUXFLOW_TEXT
+        assert "FLUXFLOW_TEXT" in FluxFlowTextEncode.RETURN_TYPES
 
-        # Node that consumes conditioning
+        # Node that consumes FLUXFLOW_TEXT
         sampler_inputs = FluxFlowSampler.INPUT_TYPES()
-        assert sampler_inputs["required"]["conditioning"][0] == "FLUXFLOW_CONDITIONING"
+        assert sampler_inputs["required"]["text"][0] == "FLUXFLOW_TEXT"

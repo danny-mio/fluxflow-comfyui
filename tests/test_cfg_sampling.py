@@ -60,9 +60,9 @@ class TestFluxFlowTextEncodeNegative:
         assert text_config.get("multiline") is True
 
     def test_return_types(self):
-        """Should return FLUXFLOW_CONDITIONING."""
-        assert FluxFlowTextEncodeNegative.RETURN_TYPES == ("FLUXFLOW_CONDITIONING",)
-        assert FluxFlowTextEncodeNegative.RETURN_NAMES == ("negative_conditioning",)
+        """Should return FLUXFLOW_TEXT (per-token text_seq + text_mask tuple)."""
+        assert FluxFlowTextEncodeNegative.RETURN_TYPES == ("FLUXFLOW_TEXT",)
+        assert FluxFlowTextEncodeNegative.RETURN_NAMES == ("negative_text",)
 
     def test_function_name(self):
         """Function should be encode."""
@@ -113,18 +113,18 @@ class TestFluxFlowSamplerCFGInputs:
         assert scale_config["max"] == 15.0
         assert scale_config["step"] == 0.1
 
-    def test_optional_negative_conditioning_parameter(self):
-        """Should have optional negative_conditioning parameter."""
+    def test_optional_negative_text_parameter(self):
+        """Should have optional negative_text parameter (FLUXFLOW_TEXT)."""
         input_types = FluxFlowSampler.INPUT_TYPES()
 
-        assert "negative_conditioning" in input_types["optional"]
+        assert "negative_text" in input_types["optional"]
 
-    def test_negative_conditioning_type(self):
-        """negative_conditioning should be FLUXFLOW_CONDITIONING."""
+    def test_negative_text_type(self):
+        """negative_text should be FLUXFLOW_TEXT."""
         input_types = FluxFlowSampler.INPUT_TYPES()
-        neg_cond_type = input_types["optional"]["negative_conditioning"]
+        neg_text_type = input_types["optional"]["negative_text"]
 
-        assert neg_cond_type[0] == "FLUXFLOW_CONDITIONING"
+        assert neg_text_type[0] == "FLUXFLOW_TEXT"
 
     def test_sample_method_signature(self):
         """sample() should accept CFG parameters."""
@@ -135,7 +135,7 @@ class TestFluxFlowSamplerCFGInputs:
 
         assert "use_cfg" in params
         assert "guidance_scale" in params
-        assert "negative_conditioning" in params
+        assert "negative_text" in params
 
 
 class TestCFGSamplingLogic:
@@ -179,23 +179,22 @@ class TestCFGIntegration:
         pos_output = FluxFlowTextEncode.RETURN_TYPES[0]
         neg_output = FluxFlowTextEncodeNegative.RETURN_TYPES[0]
 
-        assert pos_output == neg_output == "FLUXFLOW_CONDITIONING"
+        assert pos_output == neg_output == "FLUXFLOW_TEXT"
 
-    def test_sampler_accepts_both_conditioning_types(self):
-        """Sampler should accept both positive and negative conditioning."""
+    def test_sampler_accepts_both_text_inputs(self):
+        """Sampler should accept both positive and negative text (FLUXFLOW_TEXT)."""
         input_types = FluxFlowSampler.INPUT_TYPES()
 
-        # Required positive conditioning
-        assert input_types["required"]["conditioning"][0] == "FLUXFLOW_CONDITIONING"
+        # Required positive text
+        assert input_types["required"]["text"][0] == "FLUXFLOW_TEXT"
 
-        # Optional negative conditioning
-        assert input_types["optional"]["negative_conditioning"][0] == "FLUXFLOW_CONDITIONING"
+        # Optional negative text
+        assert input_types["optional"]["negative_text"][0] == "FLUXFLOW_TEXT"
 
     def test_cfg_workflow_type_chain(self):
-        """CFG workflow should have consistent type chain."""
-        # Model loader outputs
-        # Text encode (positive) outputs FLUXFLOW_CONDITIONING
-        # Text encode (negative) outputs FLUXFLOW_CONDITIONING
+        """CFG workflow should have consistent FLUXFLOW_TEXT chain."""
+        # Text encode (positive) outputs FLUXFLOW_TEXT
+        # Text encode (negative) outputs FLUXFLOW_TEXT
         # Sampler accepts both + outputs FLUXFLOW_LATENT
         # VAE decode accepts FLUXFLOW_LATENT
 
@@ -203,10 +202,10 @@ class TestCFGIntegration:
         neg_out = FluxFlowTextEncodeNegative.RETURN_TYPES[0]
         sampler_inputs = FluxFlowSampler.INPUT_TYPES()
 
-        assert pos_out == "FLUXFLOW_CONDITIONING"
-        assert neg_out == "FLUXFLOW_CONDITIONING"
-        assert sampler_inputs["required"]["conditioning"][0] == "FLUXFLOW_CONDITIONING"
-        assert sampler_inputs["optional"]["negative_conditioning"][0] == "FLUXFLOW_CONDITIONING"
+        assert pos_out == "FLUXFLOW_TEXT"
+        assert neg_out == "FLUXFLOW_TEXT"
+        assert sampler_inputs["required"]["text"][0] == "FLUXFLOW_TEXT"
+        assert sampler_inputs["optional"]["negative_text"][0] == "FLUXFLOW_TEXT"
 
 
 class TestCFGDocumentation:
@@ -238,12 +237,12 @@ class TestCFGBackwardCompatibility:
 
         assert "use_cfg" in input_types["optional"]
         assert "guidance_scale" in input_types["optional"]
-        assert "negative_conditioning" in input_types["optional"]
+        assert "negative_text" in input_types["optional"]
 
         # Required params should NOT include CFG
         assert "use_cfg" not in input_types["required"]
         assert "guidance_scale" not in input_types["required"]
-        assert "negative_conditioning" not in input_types["required"]
+        assert "negative_text" not in input_types["required"]
 
     def test_default_cfg_equals_no_cfg(self):
         """Default CFG settings should behave like no CFG."""
