@@ -511,3 +511,34 @@ See [README.md](src/comfyui_fluxflow/README.md) for canonical installation instr
 - `src/comfyui_fluxflow/TROUBLESHOOTING.md` - Common issues and solutions
 - `CONTRIBUTING.md` - Contribution guidelines
 - `AGENTS.md` - Quick reference for AI assistants
+
+## v0.10.0 Bezier-Coupled Redesign (in progress on feature/model-v0.10.0)
+
+The ComfyUI node pack tracks the v0.10.0 redesign in `fluxflow-core`. Five
+locked decisions drive the change:
+
+1. **Per-token text** — encoder returns `(text_seq, text_mask)`.
+2. **Conditional ctx coupling** in the VAE decoder.
+3. **Full flow modernization** (2D RoPE + dual FiLM).
+4. **Multi-scale SPADE** in the VAE decoder.
+5. **Clean Gaussian z** with KL-warmup + ctx shrinkage.
+
+ComfyUI-side impact:
+- New custom type `FLUXFLOW_TEXT` carries `(text_seq, text_mask)` from
+  `FluxFlowTextEncode` to `FluxFlowSampler`. Clean break — the old
+  `FLUXFLOW_CONDITIONING` pooled-vector type is removed for v0.10.0 nodes.
+- Sampler downstream wires the per-token tuple directly into the v0.10.0
+  flow processor; legacy v060/v070 checkpoints are dispatched via
+  `fluxflow.models.pipeline._flow_processor_takes_pertoken_text`.
+
+Plans:
+- Design: `fluxflow-core/docs/plans/2026-06-13-v0.10.0-redesign-design.md`
+- Implementation: `fluxflow-core/docs/plans/2026-06-13-v0.10.0-redesign-implementation.md`
+
+Salvage path for old checkpoints — run from `fluxflow-core`:
+
+```bash
+python scripts/migrate_v0_10_0_to_redesign.py --src OLD.safetensors --dst WARM.safetensors
+```
+
+Per-repo milestone tag: `m6-comfyui`.
