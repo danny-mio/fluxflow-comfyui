@@ -2,19 +2,21 @@
 
 ## Installation (60 seconds)
 
-```bash
-# 1. Navigate to ComfyUI custom nodes
-cd /path/to/ComfyUI/custom_nodes/
+1. Navigate to the ComfyUI `custom_nodes` directory and clone the plugin:
 
-# 2. Clone the repository
-git clone https://github.com/danny-mio/fluxflow-comfyui.git
-cd fluxflow-comfyui
-pip install -r requirements.txt
+   ```bash
+   cd /path/to/ComfyUI/custom_nodes/
+   git clone https://github.com/danny-mio/fluxflow-comfyui.git
+   cd fluxflow-comfyui
+   pip install -r requirements.txt
+   ```
 
-# 3. Restart ComfyUI
-# Kill existing: Ctrl+C or pkill -f "python.*main.py"
-# Start: cd /path/to/ComfyUI && python main.py
-```
+2. Restart ComfyUI so the new nodes are picked up:
+
+   ```bash
+   pkill -f "python.*main.py"
+   cd /path/to/ComfyUI && python main.py
+   ```
 
 ## First Generation (2 minutes)
 

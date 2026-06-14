@@ -2,15 +2,13 @@
 
 ComfyUI custom nodes for FluxFlow text-to-image generation.
 
-## 🚧 Checkpoint Availability
+## Checkpoint Availability
 
-**Training In Progress**: FluxFlow model checkpoints are currently being trained and are not yet available for download.
-
-**Status**: The ComfyUI nodes are fully implemented and tested, but require trained FluxFlow checkpoints to generate images.
-
-**When Available**: Trained checkpoints will be published to [MODEL_ZOO.md](https://github.com/danny-mio/fluxflow-core/blob/main/MODEL_ZOO.md) upon completion of training validation. You will then be able to load them using the FluxFlowModelLoader node.
-
-**For Developers**: You can use this plugin with your own trained FluxFlow checkpoints if you're conducting custom training experiments.
+FluxFlow model checkpoints are still in training and not yet available for
+public download. Once validation completes, they will be published to
+[MODEL_ZOO.md](https://github.com/danny-mio/fluxflow-core/blob/main/MODEL_ZOO.md).
+If you are running custom training experiments, you can use this plugin with
+your own checkpoints.
 
 ---
 

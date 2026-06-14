@@ -20,28 +20,29 @@ per-token `(text_seq, text_mask)` tuple instead of a pooled embedding tensor:
 ## Features
 
 ### Automatic Configuration Detection
-- **Zero Manual Configuration**: Automatically detects all model dimensions from checkpoint
-- **Multi-Model Support**: Works with any FluxFlow model size (32d to 128d+ VAE dimensions)
-- **Intelligent Validation**: Cross-checks detected parameters for consistency
+
+All model dimensions (VAE size, flow dim, text embed dim, etc.) are detected
+from the checkpoint and cross-checked for consistency, so any FluxFlow model
+size from 32d to 128d+ loads without manual configuration.
 
 ### Complete FluxFlow Workflow
-- **Model Loading**: Auto-detecting checkpoint loader
-- **Empty Latent Generation**: Create random latents for target dimensions
-- **VAE Encode/Decode**: Full image ↔ latent conversion
-- **Text Conditioning**: DistilBERT text encoding
-- **Flow Sampling**: Advanced denoising with 14 schedulers
+
+End-to-end text-to-image: auto-detecting checkpoint loader, empty-latent
+generation, VAE encode/decode, DistilBERT text conditioning, and flow
+sampling with 14 schedulers.
 
 ### Advanced Sampling
-- **14 Schedulers**: DPM++, DPM++ Karras, Euler, DDIM, LCM, UniPC, and more
-- **Standalone Fallback**: Works even with broken diffusers installations
-- **Prediction Types**: v_prediction, epsilon, sample
-- **Reproducible**: Seed control for deterministic generation
-- **Flexible**: Configurable steps, scheduler parameters
+
+14 schedulers (DPM++, DPM++ Karras, Euler, DDIM, LCM, UniPC, and more) with
+configurable steps and parameters, three prediction types (v_prediction,
+epsilon, sample), seed-controlled reproducibility, and a standalone
+fallback that works even when the diffusers install is broken.
 
 ### ComfyUI Native
-- **Proper Tensor Formats**: Automatic conversion between ComfyUI and FluxFlow formats
-- **Native Integration**: Works seamlessly with other ComfyUI nodes
-- **Progress Logging**: Detailed console output for debugging
+
+Tensor formats are converted automatically between ComfyUI and FluxFlow
+conventions, the nodes integrate cleanly with other ComfyUI nodes, and
+generation progress is logged to the console for debugging.
 
 ---
 
