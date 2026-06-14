@@ -53,10 +53,10 @@ FluxFlow ComfyUI provides 6 custom nodes that integrate with ComfyUI's node grap
 
 ```
 [FluxFlowModelLoader] → model
-[FluxFlowTextEncode] → conditioning
+[FluxFlowTextEncode] → text (FLUXFLOW_TEXT)
 [FluxFlowEmptyLatent] → latent
 ↓
-[FluxFlowSampler] (model + conditioning + latent) → sampled_latent
+[FluxFlowSampler] (model + text + latent) → sampled_latent
 ↓
 [FluxFlowVAEDecode] (model + sampled_latent) → image
 ```
@@ -258,7 +258,7 @@ class FluxFlowNodeName:
 FluxFlow defines custom types for ComfyUI:
 
 - `FLUXFLOW_MODEL` - Loaded FluxFlow pipeline
-- `FLUXFLOW_CONDITIONING` - Text embeddings tensor
+- `FLUXFLOW_TEXT` - Per-token text tuple `(text_seq, text_mask)` (v0.10.0; replaces v0.8.x `FLUXFLOW_CONDITIONING`)
 - `FLUXFLOW_LATENT` - Latent packet tensor [B, T+1, D]
 
 ### Node Categories
