@@ -56,3 +56,10 @@ Thumbs.db
 # ComfyUI outputs
 output/
 .mypy_cache/
+
+# AI-agent scratch and intermediate planning docs
+docs/plans/
+*_SUMMARY.md
+*_FIX.md
+AUDIT_RESPONSE.md
+CRITICAL_FIX.md
