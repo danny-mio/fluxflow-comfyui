@@ -9,6 +9,46 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 _No unreleased changes._
 
 
+## [0.10.0] - 2026-06-14
+
+### Changed (BREAKING — workflow re-wiring required)
+
+- **New `FLUXFLOW_TEXT` ComfyUI type** replaces `FLUXFLOW_CONDITIONING`
+  - `FluxFlowTextEncode` and `FluxFlowTextEncodeNegative` now return
+    `((text_seq, text_mask),)` typed as `("FLUXFLOW_TEXT",)` — a per-token
+    embedding tuple rather than a pooled vector.
+  - `FluxFlowSampler` input renamed `conditioning` → `text` (positive) and the
+    optional negative input is `negative_text`, both typed `FLUXFLOW_TEXT`.
+  - The pooled `FLUXFLOW_CONDITIONING` type is removed from the v0.10.0 nodes.
+- **Per-token vs pooled dispatch** in the sampler via
+  `fluxflow.models.pipeline._flow_processor_takes_pertoken_text`:
+  v0.10.0 flow processors receive `(packed, text_seq, text_mask, timesteps)`;
+  legacy v0.6/0.7/0.8 processors receive a masked-mean-pooled `[B, E]` tensor
+  via `_masked_mean_pool` for backwards compatibility.
+
+### Migration
+
+- **Workflows saved with v0.8.x will fail to load** with a clear ComfyUI
+  type-mismatch error where TextEncode previously wired into
+  `FluxFlowSampler.conditioning`.
+- Re-wire `FluxFlowTextEncode.text` → `FluxFlowSampler.text` (and the
+  negative encoder into `negative_text` if using CFG).
+- See `TROUBLESHOOTING.md` ("Workflow won't load after v0.10.0 upgrade") for
+  the diagnostic and the full re-wiring procedure.
+
+### Known follow-ups
+
+- CFG null condition currently uses `zeros_like(text_seq)` with the positive
+  mask rather than an encoded empty prompt; this matches the legacy null path
+  but is intentionally not the encoded-empty-prompt path used elsewhere in
+  fluxflow-core. Tracked for a future release.
+
+### Updated
+
+- **`fluxflow` dependency** bumped to `>=0.10.0` (per-token text encoder and
+  v0.10.0 flow processor are required).
+
+
 ## [0.8.0] - 2026-02-21
 
 ### Added

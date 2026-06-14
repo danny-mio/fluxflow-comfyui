@@ -74,11 +74,14 @@ You should see:
 3. **Add FluxFlowTextEncode node**
    - Connect text_encoder and tokenizer from loader
    - Enter your prompt
+   - Output socket: `text` (type `FLUXFLOW_TEXT`)
 
 4. **Add FluxFlowSampler node**
-   - Connect model, latent, and conditioning
+   - Connect `model`, `latent`, and `text` (from FluxFlowTextEncode)
    - Choose scheduler (default: DPMSolverMultistep)
    - Set steps (20-50 recommended)
+   - For CFG: enable `use_cfg`, set `guidance_scale`, and optionally connect a
+     `FluxFlowTextEncodeNegative` node into `negative_text`
 
 5. **Add FluxFlowVAEDecode node**
    - Connect model and sampled latent

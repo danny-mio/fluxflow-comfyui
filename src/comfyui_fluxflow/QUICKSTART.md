@@ -49,6 +49,11 @@ In ComfyUI interface, add these nodes (search for "FluxFlow"):
 
 ### 3. Connect
 
+> **v0.10.0**: the sampler's text input is named `text` (was `conditioning`
+> in v0.8.x) and the socket type is `FLUXFLOW_TEXT` carrying a
+> `(text_seq, text_mask)` tuple. Old workflows fail at load until they are
+> re-wired to the new socket — see `TROUBLESHOOTING.md`.
+
 ```
 Model Loader outputs:
 ├─ model → Text Encode, Sampler, VAE Decode
@@ -59,7 +64,11 @@ Empty Latent:
 └─ latent → Sampler
 
 Text Encode:
-└─ conditioning → Sampler
+└─ text (FLUXFLOW_TEXT) → Sampler.text
+
+(Optional, for CFG)
+Text Encode (Negative):
+└─ negative_text (FLUXFLOW_TEXT) → Sampler.negative_text
 
 Sampler:
 └─ latent → VAE Decode

@@ -2,6 +2,21 @@
 
 A comprehensive ComfyUI plugin for using FluxFlow diffusion models with automatic configuration detection and advanced scheduler support.
 
+## v0.10.0 update — workflow-breaking change
+
+v0.10.0 introduces a new ComfyUI socket type, `FLUXFLOW_TEXT`, which carries a
+per-token `(text_seq, text_mask)` tuple instead of a pooled embedding tensor:
+
+- `FluxFlowTextEncode` (and the new `FluxFlowTextEncodeNegative`) output
+  `FLUXFLOW_TEXT` — replacing the v0.8.x `FLUXFLOW_CONDITIONING` pooled type.
+- `FluxFlowSampler` input renamed `conditioning` → `text` (positive). The
+  optional negative-prompt input is now `negative_text`. Both accept
+  `FLUXFLOW_TEXT`.
+- **Workflows saved with v0.8.x will fail to load** with a clear ComfyUI
+  type-mismatch error. You must re-wire `TextEncode.text` → `Sampler.text`
+  after upgrading. See `TROUBLESHOOTING.md` ("Workflow won't load after
+  v0.10.0 upgrade") and `CHANGELOG.md` for the full migration note.
+
 ## Features
 
 ### Automatic Configuration Detection
@@ -123,20 +138,21 @@ pip install -r fluxflow-comfyui/requirements.txt
 **Inputs**:
 - `model`: FluxFlow pipeline
 - `latent`: Latent packet [B, T+1, D]
-- `use_context` (BOOLEAN): Enable context conditioning (default: True)
 
 **Outputs**:
 - `image`: ComfyUI image [B, H, W, C] in [0, 1]
 
 **Notes**:
 - Automatically converts FluxFlow format to ComfyUI format
-- Context conditioning improves reconstruction quality
+- Context conditioning is always enabled (the `use_context` toggle was
+  removed; the v0.10.0 redesign couples context conditioning into the
+  decoder unconditionally — see `CLAUDE.md` for design notes)
 
 ---
 
 ### 5. FluxFlow Text Encode
 
-**Purpose**: Encode text prompt to conditioning
+**Purpose**: Encode text prompt to a per-token `FLUXFLOW_TEXT` tuple
 
 **Inputs**:
 - `text_encoder`: BertTextEncoder from loader
@@ -144,12 +160,16 @@ pip install -r fluxflow-comfyui/requirements.txt
 - `text` (STRING, multiline): Text prompt
 
 **Outputs**:
-- `conditioning`: Text embeddings [B, D]
+- `text` (`FLUXFLOW_TEXT`): Tuple `(text_seq, text_mask)` —
+  `text_seq` is per-token embeddings `[B, T_txt, E]` and `text_mask` is a
+  bool mask `[B, T_txt]` (True for valid tokens)
 
 **Notes**:
 - Uses DistilBERT for text encoding
 - Max sequence length: 512 tokens
 - Automatically pads/truncates
+- A companion `FluxFlowTextEncodeNegative` node returns the same
+  `FLUXFLOW_TEXT` tuple for the optional CFG negative prompt
 
 ---
 
@@ -160,14 +180,25 @@ pip install -r fluxflow-comfyui/requirements.txt
 **Inputs**:
 - `model`: FluxFlow pipeline
 - `latent`: Noisy latent packet
-- `conditioning`: Text embeddings
+- `text` (`FLUXFLOW_TEXT`): Positive `(text_seq, text_mask)` tuple
 - `steps` (INT): Sampling steps (1-1000, default: 20)
 - `scheduler` (COMBO): Scheduler selection
 - `prediction_type` (COMBO): v_prediction, epsilon, sample
 - `seed` (INT): Random seed
+- `use_cfg` (BOOLEAN, optional): Enable Classifier-Free Guidance (default: False)
+- `guidance_scale` (FLOAT, optional): CFG guidance scale (default: 5.0)
+- `negative_text` (`FLUXFLOW_TEXT`, optional): Negative `(text_seq, text_mask)`
+  tuple. When CFG is on and this input is omitted, a zero `text_seq` with the
+  positive mask is used as the null condition (known follow-up — see
+  `CHANGELOG.md`).
 
 **Outputs**:
 - `latent`: Denoised latent packet
+
+**Dispatch note**: v0.10.0 flow processors receive the per-token tuple
+directly; legacy v0.6/0.7/0.8 processors are detected via
+`fluxflow.models.pipeline._flow_processor_takes_pertoken_text` and receive a
+masked-mean-pooled `[B, E]` tensor for backwards compatibility.
 
 **Available Schedulers** (14 total):
 1. **DPMSolverMultistep** (default) - Fast, high quality
@@ -214,12 +245,12 @@ pip install -r fluxflow-comfyui/requirements.txt
    ├─ tokenizer (from 1)
    └─ text: "A beautiful sunset over mountains"
    ↓
-   └─ conditioning → 4
+   └─ text (FLUXFLOW_TEXT) → 4
 
 4. FluxFlowSampler
    ├─ model (from 1)
    ├─ latent (from 2)
-   ├─ conditioning (from 3)
+   ├─ text (from 3)
    ├─ steps: 20
    ├─ scheduler: "DPMSolverMultistep"
    └─ prediction_type: "v_prediction"
@@ -258,12 +289,12 @@ pip install -r fluxflow-comfyui/requirements.txt
    ├─ tokenizer (from 2)
    └─ text: "Transform into oil painting style"
    ↓
-   └─ conditioning → 5
+   └─ text (FLUXFLOW_TEXT) → 5
 
 5. FluxFlowSampler
    ├─ model (from 2)
    ├─ latent (from 3)
-   ├─ conditioning (from 4)
+   ├─ text (from 4)
    ├─ steps: 30
    └─ scheduler: "EulerAncestralDiscrete"
    ↓
@@ -363,7 +394,7 @@ If you get dimension errors:
 
 ### High Quality
 - Use `DPMSolverMultistep` or `UniPCMultistep` with 20-50 steps
-- Enable `use_context: True` in VAE Decode
+- Context conditioning is always on in VAE Decode (v0.10.0+) — no toggle
 - Use larger models (vae_dim=128)
 
 ### Reproducibility
@@ -431,6 +462,14 @@ Same license as FluxFlow project.
 ## Changelog
 
 See [CHANGELOG.md](CHANGELOG.md) for the full version history.
+
+### v0.10.0 (2026-06-14)
+- Introduced `FLUXFLOW_TEXT` per-token type — clean break vs v0.8.x
+  (`FluxFlowTextEncode` returns `(text_seq, text_mask)`; sampler input
+  renamed `conditioning` → `text`)
+- Per-token vs pooled dispatch in `FluxFlowSampler` for legacy v0.6/0.7/0.8
+  flow processors
+- Updated `fluxflow` dependency to `>=0.10.0`
 
 ### v0.8.0 (2026-02-21)
 - v0.8.0 checkpoint detection in `FluxFlowModelLoader` (pillar-attention weights)

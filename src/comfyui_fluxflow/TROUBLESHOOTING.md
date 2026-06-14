@@ -2,6 +2,39 @@
 
 ## Common Issues and Solutions
 
+### 0. Workflow won't load after v0.10.0 upgrade
+
+**Problem**: Loading a workflow saved with v0.8.x fails with a ComfyUI
+type-mismatch error on the link between `FluxFlowTextEncode` and
+`FluxFlowSampler`, typically referencing `FLUXFLOW_CONDITIONING` vs
+`FLUXFLOW_TEXT` (or "Input `conditioning` not found" on the sampler).
+
+**Cause**: v0.10.0 is a deliberate clean break. The text node now outputs a
+per-token `(text_seq, text_mask)` tuple typed `FLUXFLOW_TEXT`, and the
+sampler input was renamed `conditioning` → `text`. The old pooled
+`FLUXFLOW_CONDITIONING` type was removed.
+
+**Fix**: Re-wire the workflow:
+
+1. Delete the old link between `FluxFlowTextEncode` and `FluxFlowSampler`.
+2. Connect `FluxFlowTextEncode.text` → `FluxFlowSampler.text`.
+3. For CFG: add a `FluxFlowTextEncodeNegative` node and connect its output
+   to `FluxFlowSampler.negative_text`; set `use_cfg: True` and pick a
+   `guidance_scale`.
+4. Save the workflow.
+
+**Note (known follow-up)**: when CFG is enabled and `negative_text` is left
+unconnected, the sampler currently builds the null condition as
+`torch.zeros_like(text_seq)` with the positive `text_mask`, rather than
+re-encoding an empty prompt. This matches the legacy null path but is
+intentionally not the encoded-empty-prompt path used elsewhere in
+fluxflow-core; if you need the encoded-empty-prompt null, wire an explicit
+`FluxFlowTextEncodeNegative` with an empty string.
+
+See `CHANGELOG.md` for the full v0.10.0 entry.
+
+---
+
 ### 1. "ImportError: cannot import name 'cached_download' from 'huggingface_hub'"
 
 **Problem**: Dependency version conflict between ComfyUI's diffusers and huggingface_hub.

@@ -45,7 +45,8 @@ Custom types added via JavaScript extensions **cannot override the rendering pip
 - Purple: `FLUXFLOW_MODEL`
 - Green: `FLUXFLOW_TEXT_ENCODER`
 - Dark Green: `FLUXFLOW_TOKENIZER`
-- Amber: `FLUXFLOW_CONDITIONING`
+- Amber: `FLUXFLOW_TEXT` (v0.10.0 per-token `(text_seq, text_mask)` tuple —
+  replaces the v0.8.x `FLUXFLOW_CONDITIONING` pooled type)
 - Blue: `FLUXFLOW_LATENT`
 
 ### Browser Console Check
@@ -72,7 +73,7 @@ Since ComfyUI doesn't support custom type matching, users must:
 Change custom types to ComfyUI built-ins:
 - `FLUXFLOW_MODEL` → `MODEL`
 - `FLUXFLOW_LATENT` → `LATENT`
-- `FLUXFLOW_CONDITIONING` → `CONDITIONING`
+- `FLUXFLOW_TEXT` → `CONDITIONING` (aliasing the v0.10.0 per-token tuple type)
 
 **Pros**: Auto-suggest would work
 **Cons**: Could connect to incompatible non-FluxFlow nodes (e.g., Stable Diffusion)

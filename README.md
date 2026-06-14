@@ -14,6 +14,21 @@ ComfyUI custom nodes for FluxFlow text-to-image generation.
 
 ---
 
+## v0.10.0 — workflow-breaking change
+
+v0.10.0 introduces a new ComfyUI socket type `FLUXFLOW_TEXT` carrying a
+per-token `(text_seq, text_mask)` tuple between `FluxFlowTextEncode` and
+`FluxFlowSampler`, replacing the v0.8.x pooled `FLUXFLOW_CONDITIONING` type
+and renaming the sampler input `conditioning` → `text`. Workflows saved
+with v0.8.x will fail to load with a clear ComfyUI type-mismatch error and
+must be re-wired.
+
+See [the package CHANGELOG](src/comfyui_fluxflow/CHANGELOG.md) and
+[TROUBLESHOOTING](src/comfyui_fluxflow/TROUBLESHOOTING.md) for the full
+migration note.
+
+---
+
 ## Installation
 
 ### Production Install (ComfyUI Users)
@@ -112,13 +127,19 @@ Generate empty latent tensors at specified dimensions.
 
 ## Example Workflows
 
+> **v0.10.0**: the text sockets between encoder and sampler now use the
+> `FLUXFLOW_TEXT` type (per-token `(text_seq, text_mask)` tuple) and the
+> sampler input is named `text` (positive) / `negative_text` (optional).
+> Workflows saved against the older `FLUXFLOW_CONDITIONING` socket type
+> must be re-wired — see [TROUBLESHOOTING](src/comfyui_fluxflow/TROUBLESHOOTING.md).
+
 ### Basic Workflow (No CFG)
 
 ```
 [FluxFlowModelLoader] → model
-[FluxFlowTextEncode] → conditioning
+[FluxFlowTextEncode] → text (FLUXFLOW_TEXT)
 [FluxFlowEmptyLatent] → latent
-[FluxFlowSampler] (model + conditioning + latent) → sampled_latent
+[FluxFlowSampler] (model + text + latent) → sampled_latent
 [FluxFlowVAEDecode] (model + sampled_latent) → image
 ```
 
@@ -126,9 +147,9 @@ Generate empty latent tensors at specified dimensions.
 
 ```
 [FluxFlowModelLoader] → model
-[FluxFlowTextEncode] (positive prompt) → conditioning
+[FluxFlowTextEncode] (positive prompt) → text (FLUXFLOW_TEXT)
 [FluxFlowEmptyLatent] → latent
-[FluxFlowSampler] (model + conditioning + latent + use_cfg=True + guidance_scale=5.0) → sampled_latent
+[FluxFlowSampler] (model + text + latent + use_cfg=True + guidance_scale=5.0) → sampled_latent
 [FluxFlowVAEDecode] (model + sampled_latent) → image
 ```
 
@@ -136,10 +157,10 @@ Generate empty latent tensors at specified dimensions.
 
 ```
 [FluxFlowModelLoader] → model
-[FluxFlowTextEncode] (positive prompt) → conditioning
-[FluxFlowTextEncodeNegative] (negative prompt) → negative_conditioning
+[FluxFlowTextEncode] (positive prompt) → text (FLUXFLOW_TEXT)
+[FluxFlowTextEncodeNegative] (negative prompt) → negative_text (FLUXFLOW_TEXT)
 [FluxFlowEmptyLatent] → latent
-[FluxFlowSampler] (model + conditioning + negative_conditioning + latent + use_cfg=True + guidance_scale=5.0) → sampled_latent
+[FluxFlowSampler] (model + text + negative_text + latent + use_cfg=True + guidance_scale=5.0) → sampled_latent
 [FluxFlowVAEDecode] (model + sampled_latent) → image
 ```
 
@@ -163,7 +184,8 @@ The final prediction is guided by: `v_guided = v_uncond + guidance_scale * (v_co
 3. In `FluxFlowSampler`:
    - Set `use_cfg` to `True`
    - Set `guidance_scale` between 1.0-15.0 (recommended: 3.0-7.0)
-   - Leave `negative_conditioning` empty (uses null embeddings)
+   - Leave `negative_text` empty (uses a `zeros_like(text_seq)` null with the
+     positive mask; see CHANGELOG known follow-up)
 
 **Advanced CFG with Negative Prompts**:
 1. Encode positive prompt with `FluxFlowTextEncode`
