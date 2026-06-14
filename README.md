@@ -57,7 +57,7 @@ pip install comfyui-fluxflow
 - `fluxflow` core package (automatically installed as dependency)
 - **Note**: Does NOT include training capabilities. Only inference/generation.
 
-**Package available on PyPI**: [comfyui-fluxflow v0.8.0](https://pypi.org/project/comfyui-fluxflow/)
+**Package available on PyPI**: [comfyui-fluxflow v0.10.0](https://pypi.org/project/comfyui-fluxflow/)
 
 **Additional Setup Required**: You must symlink the package into ComfyUI's `custom_nodes` directory:
 

@@ -1,7 +1,7 @@
 # FluxFlow ComfyUI - Runtime Dependencies
 # Install with: pip install -r requirements.txt
 
-fluxflow>=0.8.0
+fluxflow>=0.10.0
 # ComfyUI-specific dependencies
 torch>=2.0.0
 torchvision>=0.15.0

@@ -13,7 +13,7 @@ FluxFlow ComfyUI is a custom nodes package for ComfyUI that integrates FluxFlow 
 - **Latent Generation**: Create empty latent tensors at various resolutions
 - **6 Custom Nodes**: Complete workflow for text-to-image generation
 
-**Version**: 0.8.0
+**Version**: 0.10.0
 
 ## Quick Commands
 

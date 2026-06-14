@@ -49,6 +49,9 @@ Custom types added via JavaScript extensions **cannot override the rendering pip
   replaces the v0.8.x `FLUXFLOW_CONDITIONING` pooled type)
 - Blue: `FLUXFLOW_LATENT`
 
+The v0.8.x `FLUXFLOW_CONDITIONING` type is not registered in v0.10.0; it was
+removed along with the pooled-embedding code path.
+
 ### Browser Console Check
 If the extension loads correctly, you should see:
 ```

@@ -45,8 +45,10 @@ _No unreleased changes._
 
 ### Updated
 
-- **`fluxflow` dependency** bumped to `>=0.10.0` (per-token text encoder and
-  v0.10.0 flow processor are required).
+- **`fluxflow` dependency** pinned to the
+  `fluxflow-core@feature/model-v0.10.0` branch during development (per-token
+  text encoder and v0.10.0 flow processor are required); this will become
+  `fluxflow>=0.10.0` after the PyPI release.
 
 
 ## [0.8.0] - 2026-02-21

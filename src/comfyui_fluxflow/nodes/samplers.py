@@ -57,7 +57,7 @@ class FluxFlowSampler:
     """
     Sample/denoise latent using FluxFlow diffusion model.
 
-    Supports 12+ schedulers from diffusers with full configuration.
+    Supports 14 schedulers from diffusers with full configuration.
 
     Inputs the v0.10.0 ``FLUXFLOW_TEXT`` tuple ``(text_seq, text_mask)``.
     """
