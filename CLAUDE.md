@@ -212,9 +212,9 @@ class TestFluxFlowNode:
 
 ### Available Fixtures (conftest.py)
 
-- **Device fixtures**: `device`, `cpu_device`
-- **Mock fixtures**: `mock_checkpoint_path`, `mock_tokenizer`, `mock_fluxflow_model`
-- **Tensor fixtures**: `sample_latent`, `sample_conditioning`
+- `temp_dir` — yields a `pathlib.Path` to a temporary directory cleaned up on teardown
+- `mock_checkpoint_state` — a dict of mock FluxFlow model tensors keyed by the expected
+  state-dict path (compressor, flow_processor, expander, token_attn, transformer_blocks)
 
 ### Test Coverage
 

@@ -1,5 +1,8 @@
 # ComfyUI FluxFlow Plugin Dependencies
 
+# FluxFlow core — provides the v0.10.0 model classes the nodes import
+fluxflow>=0.10.0
+
 # Core dependencies (should already be available in ComfyUI environment)
 torch>=2.0.0
 torchvision>=0.15.0
