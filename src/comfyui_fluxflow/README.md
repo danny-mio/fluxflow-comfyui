@@ -203,7 +203,7 @@ masked-mean-pooled `[B, E]` tensor for backwards compatibility.
 
 **Available Schedulers** (14 total):
 1. **DPMSolverMultistep** (default) - Fast, high quality
-2. **DPMPlusPlusKarras** ⭐ NEW - Premium quality with Karras schedule
+2. **DPMPlusPlusKarras** - Premium quality with Karras schedule
 3. **DPMSolverSinglestep** - Single-step variant
 4. **DPMSolverSDE** - Stochastic variant
 5. **EulerDiscrete** - Simple, stable
@@ -463,18 +463,3 @@ Same license as FluxFlow project.
 ## Changelog
 
 See [CHANGELOG.md](CHANGELOG.md) for the full version history.
-
-### v0.10.0 (2026-06-14)
-- Introduced `FLUXFLOW_TEXT` per-token type — clean break vs v0.8.x
-  (`FluxFlowTextEncode` returns `(text_seq, text_mask)`; sampler input
-  renamed `conditioning` → `text`)
-- Per-token vs pooled dispatch in `FluxFlowSampler` for legacy v0.6/0.7/0.8
-  flow processors
-- Updated `fluxflow` dependency to `>=0.10.0`
-
-### v0.8.0 (2026-02-21)
-- v0.8.0 checkpoint detection in `FluxFlowModelLoader` (pillar-attention weights)
-- Updated `fluxflow` dependency to `>=0.8.0`
-
-### v0.1.0 (2025-01-13)
-- Initial release: 6 nodes, 14 schedulers, automatic configuration detection

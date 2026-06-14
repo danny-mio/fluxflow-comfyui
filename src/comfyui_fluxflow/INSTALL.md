@@ -115,8 +115,10 @@ Use absolute paths or paths relative to FluxFlow project root:
 
 ### Import errors on startup
 
-Check ComfyUI console for specific error messages.
-Ensure FluxFlow `src/` directory is accessible from plugin.
+Check ComfyUI console for specific error messages. If installed via pip,
+re-run `pip install -e .` from the cloned `fluxflow-comfyui` directory.
+If using a symlink, verify it points to the repo root, not the inner
+package directory.
 
 ## Next Steps
 

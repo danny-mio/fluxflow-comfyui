@@ -2,7 +2,7 @@
 
 ## Common Issues and Solutions
 
-### 0. Workflow won't load after v0.10.0 upgrade
+### Workflow won't load after v0.10.0 upgrade (BREAKING — read first)
 
 **Problem**: Loading a workflow saved with v0.8.x fails with a ComfyUI
 type-mismatch error on the link between `FluxFlowTextEncode` and
@@ -39,7 +39,7 @@ See `CHANGELOG.md` for the full v0.10.0 entry.
 
 **Problem**: Dependency version conflict between ComfyUI's diffusers and huggingface_hub.
 
-**Solution**: Update the plugin to the latest version which uses lazy scheduler loading:
+**Solution**: Update the plugin to the latest version:
 
 ```bash
 cd /path/to/fluxflow

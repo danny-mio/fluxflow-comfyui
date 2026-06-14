@@ -104,7 +104,6 @@ Click "Queue Prompt" to start generation. Check the console for progress output.
 - Experiment with image sizes
 - Try image-to-image (add FluxFlow VAE Encode)
 - Read README.md for all features
-- Check out 14 available schedulers!
 
 ## Configuration Detected
 
