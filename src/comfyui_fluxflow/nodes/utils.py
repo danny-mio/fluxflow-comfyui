@@ -56,22 +56,23 @@ def flux_image_to_comfy(image: torch.Tensor) -> torch.Tensor:
 
 def get_device_auto() -> torch.device:
     """
-    Auto-detect best available device.
+    Auto-detect best available device (CUDA/ROCm > MPS > CPU).
+
+    Deprecated: thin wrapper around fluxflow.utils.device.get_device.
 
     Returns:
-        torch.device (cuda > mps > cpu)
+        torch.device instance
     """
-    if torch.cuda.is_available():
-        return torch.device("cuda")
-    elif hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
-        return torch.device("mps")
-    else:
-        return torch.device("cpu")
+    from fluxflow.utils.device import get_device as _core_get_device
+
+    return _core_get_device()
 
 
 def parse_device(device_str: str) -> torch.device:
     """
     Parse device string to torch.device.
+
+    Deprecated: thin wrapper around fluxflow.utils.device.parse_device.
 
     Args:
         device_str: "auto", "cuda", "cpu", "mps", or "cuda:0" format
@@ -79,7 +80,6 @@ def parse_device(device_str: str) -> torch.device:
     Returns:
         torch.device instance
     """
-    if device_str == "auto":
-        return get_device_auto()
-    else:
-        return torch.device(device_str)
+    from fluxflow.utils.device import parse_device as _core_parse_device
+
+    return _core_parse_device(device_str)

@@ -6,10 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
-_No unreleased changes._
+Not yet released — work in progress toward v0.10.0.
 
-
-## [0.10.0] - 2026-06-14
+### Added (Experimental)
+- **AMD ROCm/gfx1151 support (experimental, unvalidated)**: `get_device_auto`/
+  `parse_device` now delegate to `fluxflow.utils.device`, which distinguishes
+  ROCm from real NVIDIA CUDA. No node-visible behavior change — ROCm-build
+  PyTorch already routed through the existing CUDA code path. See
+  `docs/ROCM.md` in fluxflow-core.
+- NPU (XDNA) acceleration was evaluated and deferred; not implemented.
 
 ### Changed (BREAKING — workflow re-wiring required)
 
@@ -50,6 +55,23 @@ _No unreleased changes._
   text encoder and v0.10.0 flow processor are required); this will become
   `fluxflow>=0.10.0` after the PyPI release.
 
+### Fixed
+- `FluxFlowModelLoader` could not load v0.10.0 checkpoints at all: the
+  legacy-detection heuristic checked for v0.8.0 (`pillar_cross_attn`/
+  `film_p0`) and v0.7.0 markers first, and v0.10.0's `FluxTransformerBlock_v100`
+  contains `film_p0_text`/`film_p0_time` (inherited naming), so v0.10.0
+  checkpoints always hit the "v0.8.0 detected but requires metadata" error
+  path. The node now checks `fluxflow.models.detect_architecture_version`
+  first and constructs a proper v0.10.0 model (previously only v0.3.0 had a
+  construct-and-load fallback; v0.7.0/v0.8.0 just errored).
+- The `config_info` version string always showed a stale/default value
+  (`getattr(pipeline, "version", ...)` — no such attribute is ever set) —
+  now re-detected from the checkpoint's own state-dict keys for display.
+
+### Added
+- Optional `text_encoder_path` input on `FluxFlowModelLoader`, overriding
+  both the auto-discovered sibling `text_encoder.safetensors` and the
+  checkpoint's bundled copy.
 
 ## [0.8.0] - 2026-02-21
 
