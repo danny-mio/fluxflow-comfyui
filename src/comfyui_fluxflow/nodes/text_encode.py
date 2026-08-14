@@ -11,6 +11,15 @@ This is a compat-break vs v0.8.x, where the node emitted a pooled
 
 import torch
 
+try:
+    # Shared single source of truth with training (fluxflow_training.data.datasets'
+    # max_text_length) so generation's prompt-encoding length can't silently
+    # diverge from what the model was actually trained on. Falls back to the
+    # same value if the installed fluxflow-core predates this constant.
+    from fluxflow.text_length import DEFAULT_MAX_TEXT_LENGTH
+except ImportError:  # pragma: no cover - stale fluxflow-core install
+    DEFAULT_MAX_TEXT_LENGTH = 32
+
 
 def _tokenize_and_encode(text_encoder, tokenizer, text):
     """Shared tokenization + encoding helper.
@@ -22,7 +31,7 @@ def _tokenize_and_encode(text_encoder, tokenizer, text):
     """
     encodings = tokenizer(
         text,
-        max_length=512,
+        max_length=DEFAULT_MAX_TEXT_LENGTH,
         padding="max_length",
         truncation=True,
         return_tensors="pt",

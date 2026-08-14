@@ -56,6 +56,14 @@ Not yet released — work in progress toward v0.10.0.
   `fluxflow>=0.10.0` after the PyPI release.
 
 ### Fixed
+- **Train/inference max-length mismatch**: `FluxFlowTextEncode` hardcoded
+  `max_length=512` while `fluxflow-training` actually caps captions at 32
+  tokens with no override and no truncation logging — the model was only
+  ever trained on the first ~32 tokens, but the node silently allowed much
+  longer prompts. Now imports a shared `DEFAULT_MAX_TEXT_LENGTH` constant
+  from `fluxflow-core` (falls back to `32` if the installed `fluxflow-core`
+  predates the constant), so this node can't silently diverge from
+  training's actual max length again.
 - `FluxFlowModelLoader` could not load v0.10.0 checkpoints at all: the
   legacy-detection heuristic checked for v0.8.0 (`pillar_cross_attn`/
   `film_p0`) and v0.7.0 markers first, and v0.10.0's `FluxTransformerBlock_v100`
