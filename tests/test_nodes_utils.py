@@ -12,7 +12,12 @@ import unittest.mock as mock
 import pytest
 import torch
 
-from comfyui_fluxflow.nodes.utils import get_device_auto, parse_device, to_model_dtype
+from comfyui_fluxflow.nodes.utils import (
+    flux_image_to_comfy,
+    get_device_auto,
+    parse_device,
+    to_model_dtype,
+)
 
 
 class TestGetDeviceAuto:
@@ -120,3 +125,51 @@ class TestToModelDtype:
 
         with pytest.raises(RuntimeError):
             reference(tensor)
+
+
+class TestFluxImageToComfy:
+    """Tests for flux_image_to_comfy: output must always be float32 for ComfyUI.
+
+    ComfyUI's IMAGE contract is float32 -- its own nodes.py does
+    image.cpu().numpy(), and numpy has no bfloat16 support. The model may
+    decode in bf16/fp16, so this conversion must always cast to float32
+    regardless of input dtype.
+    """
+
+    def test_bf16_input_returns_float32(self):
+        """bf16 model output must be cast to float32, numerically close to fp32."""
+        fp32_image = torch.rand(2, 3, 8, 8, dtype=torch.float32) * 2 - 1
+        bf16_image = fp32_image.to(dtype=torch.bfloat16)
+
+        result_from_bf16 = flux_image_to_comfy(bf16_image)
+        result_from_fp32 = flux_image_to_comfy(fp32_image)
+
+        assert result_from_bf16.dtype == torch.float32
+        assert torch.allclose(result_from_bf16, result_from_fp32, atol=1e-2)
+
+    def test_fp16_input_returns_float32(self):
+        """fp16 model output must be cast to float32, numerically close to fp32."""
+        fp32_image = torch.rand(2, 3, 8, 8, dtype=torch.float32) * 2 - 1
+        fp16_image = fp32_image.to(dtype=torch.float16)
+
+        result_from_fp16 = flux_image_to_comfy(fp16_image)
+        result_from_fp32 = flux_image_to_comfy(fp32_image)
+
+        assert result_from_fp16.dtype == torch.float32
+        assert torch.allclose(result_from_fp16, result_from_fp32, atol=1e-3)
+
+    def test_fp32_input_stays_float32(self):
+        """Regression/no-op case: a plain fp32 input still returns float32."""
+        fp32_image = torch.rand(2, 3, 8, 8, dtype=torch.float32) * 2 - 1
+
+        result = flux_image_to_comfy(fp32_image)
+
+        assert result.dtype == torch.float32
+
+    def test_output_shape_is_permuted_to_bhwc(self):
+        """Guard against unrelated regressions: [B, C, H, W] -> [B, H, W, C]."""
+        fp32_image = torch.rand(2, 3, 8, 16, dtype=torch.float32) * 2 - 1
+
+        result = flux_image_to_comfy(fp32_image)
+
+        assert result.shape == (2, 8, 16, 3)

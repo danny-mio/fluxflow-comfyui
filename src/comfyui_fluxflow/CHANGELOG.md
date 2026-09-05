@@ -85,6 +85,16 @@ Not yet released — work in progress toward v0.10.0.
   model's dtype at the same point they're moved to its device; integer/bool
   tensors (e.g. `text_mask`) are left untouched. New `to_model_dtype()`
   helper in `nodes/utils.py`.
+- **Decoded images returned in the model's inference dtype instead of
+  float32**: `FluxFlowVAEDecode` handed ComfyUI's `SaveImage`/`PreviewImage`
+  nodes an image tensor still in whatever dtype the model decoded in
+  (fp16/bf16 with the `dtype` load option above), but ComfyUI's `IMAGE`
+  contract is always float32 — its own `nodes.py` does
+  `image.cpu().numpy()`, and numpy has no bfloat16 support, raising
+  `TypeError: Got unsupported ScalarType BFloat16`. `flux_image_to_comfy` in
+  `nodes/utils.py` now always casts its output to float32 regardless of
+  input dtype. `comfy_image_to_flux` (the encode direction) is intentionally
+  left unchanged, since ComfyUI always supplies float32 images already.
 
 ### Added
 - Optional `text_encoder_path` input on `FluxFlowModelLoader`, overriding

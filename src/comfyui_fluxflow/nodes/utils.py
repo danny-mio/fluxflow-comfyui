@@ -51,7 +51,10 @@ def flux_image_to_comfy(image: torch.Tensor) -> torch.Tensor:
     # Permute from [B, C, H, W] to [B, H, W, C]
     image = image.permute(0, 2, 3, 1)
 
-    return image.contiguous()
+    # ComfyUI's IMAGE contract is always float32 (its nodes.py does
+    # image.cpu().numpy(), and numpy has no bfloat16 support), regardless of
+    # the model's inference dtype (fp32/fp16/bf16).
+    return image.to(dtype=torch.float32).contiguous()
 
 
 def get_device_auto() -> torch.device:

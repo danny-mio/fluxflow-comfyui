@@ -94,10 +94,10 @@ class TestFluxFlowVAEDecodeDtype:
 
         (image,) = FluxFlowVAEDecode().decode(model, latent)
 
-        # decode's output goes through flux_image_to_comfy, which permutes and
-        # clamps but does not change dtype -- the expander's bf16 output dtype
-        # should survive to the returned image.
-        assert image.dtype == torch.bfloat16
+        # decode's output goes through flux_image_to_comfy, which now always
+        # casts to float32 for ComfyUI's IMAGE contract, regardless of the
+        # expander's (bf16) output dtype.
+        assert image.dtype == torch.float32
 
     def test_decode_casts_latent_to_expander_dtype_fp16(self):
         expander = _FakeExpander(dtype=torch.float16)
@@ -109,7 +109,9 @@ class TestFluxFlowVAEDecodeDtype:
 
         (image,) = FluxFlowVAEDecode().decode(model, latent)
 
-        assert image.dtype == torch.float16
+        # flux_image_to_comfy always casts to float32 for ComfyUI's IMAGE
+        # contract, regardless of the expander's (fp16) output dtype.
+        assert image.dtype == torch.float32
 
     def test_decode_fp32_model_stays_fp32(self):
         expander = _FakeExpander()  # fp32 default
