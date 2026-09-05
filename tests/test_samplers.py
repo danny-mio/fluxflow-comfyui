@@ -32,14 +32,19 @@ class _FakeFlowProcessor(torch.nn.Module):
         super().__init__()
         self.packed_proj = torch.nn.Linear(dim, dim, dtype=dtype)
         self.text_proj = torch.nn.Linear(dim, dim, dtype=dtype)
+        self.time_proj = torch.nn.Linear(1, dim, dtype=dtype)
         self.captured_dtypes: dict = {}
 
     def forward(self, packed, text_seq, text_mask, timesteps):
         self.captured_dtypes["packed"] = packed.dtype
         self.captured_dtypes["text_seq"] = text_seq.dtype
         self.captured_dtypes["text_mask"] = text_mask.dtype
+        self.captured_dtypes["timesteps"] = timesteps.dtype
         self.packed_proj(packed)  # raises RuntimeError on dtype mismatch
         self.text_proj(text_seq)  # raises RuntimeError on dtype mismatch
+        # Mirrors fluxflow.models.v100.flow.FluxFlowProcessor_v100's
+        # `time_mlp(time_emb)`: raises RuntimeError on dtype mismatch.
+        self.time_proj(timesteps.unsqueeze(-1))
         return packed
 
 
@@ -80,6 +85,31 @@ class TestFluxFlowSamplerDtype:
 
         assert flow_processor.captured_dtypes["packed"] == torch.float16
         assert flow_processor.captured_dtypes["text_seq"] == torch.float16
+
+    def test_sample_casts_timestep_batch_to_bf16(self):
+        """Per-step timestep batch must be cast to the model's dtype, not
+
+        left hardcoded float32 (regression: missed by the earlier
+        latent/text_seq dtype-cast fix, raised RuntimeError in the flow
+        processor's time-embedding MLP under bf16 inference).
+        """
+        model, flow_processor, latent, text_seq, text_mask = _make_model_and_inputs(torch.bfloat16)
+
+        FluxFlowSampler().sample(
+            model, latent, (text_seq, text_mask), steps=1, scheduler="DPMSolverMultistep"
+        )
+
+        assert flow_processor.captured_dtypes["timesteps"] == torch.bfloat16
+
+    def test_sample_casts_timestep_batch_to_fp16(self):
+        """Same as above, for fp16."""
+        model, flow_processor, latent, text_seq, text_mask = _make_model_and_inputs(torch.float16)
+
+        FluxFlowSampler().sample(
+            model, latent, (text_seq, text_mask), steps=1, scheduler="DPMSolverMultistep"
+        )
+
+        assert flow_processor.captured_dtypes["timesteps"] == torch.float16
 
     def test_sample_does_not_cast_text_mask(self):
         """text_mask is bool -- must be device-moved only, never dtype-cast."""

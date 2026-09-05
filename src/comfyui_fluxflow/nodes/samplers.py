@@ -192,6 +192,7 @@ class FluxFlowSampler:
                 t_batch = torch.full(
                     (lat.size(0),), t.item() / 999.0, device=device, dtype=torch.float32
                 )
+                t_batch = to_model_dtype(t_batch, model.flow_processor)
 
                 # Prepare input for flow processor
                 full_input = torch.cat([lat, hw_vec], dim=1)

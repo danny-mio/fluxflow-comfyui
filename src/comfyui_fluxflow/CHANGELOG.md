@@ -85,6 +85,13 @@ Not yet released — work in progress toward v0.10.0.
   model's dtype at the same point they're moved to its device; integer/bool
   tensors (e.g. `text_mask`) are left untouched. New `to_model_dtype()`
   helper in `nodes/utils.py`.
+- **Dtype mismatch missed by the above fix — per-step timestep batch**:
+  `FluxFlowSampler`'s denoising loop still built `t_batch` hardcoded to
+  `torch.float32` on every step, so a bf16/fp16 model load still raised
+  `RuntimeError: mat1 and mat2 must have the same dtype, but got Float and
+  BFloat16/Half` in the flow processor's time-embedding MLP
+  (`time_mlp(time_emb)`). `t_batch` is now cast with the same
+  `to_model_dtype()` helper right after construction.
 - **Decoded images returned in the model's inference dtype instead of
   float32**: `FluxFlowVAEDecode` handed ComfyUI's `SaveImage`/`PreviewImage`
   nodes an image tensor still in whatever dtype the model decoded in
