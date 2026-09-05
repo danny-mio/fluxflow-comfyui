@@ -83,3 +83,25 @@ def parse_device(device_str: str) -> torch.device:
     from fluxflow.utils.device import parse_device as _core_parse_device
 
     return _core_parse_device(device_str)
+
+
+def to_model_dtype(tensor: torch.Tensor, reference: torch.nn.Module) -> torch.Tensor:
+    """
+    Cast a floating-point tensor to match `reference`'s parameter dtype.
+
+    Mirrors the existing `next(model.parameters()).device` pattern used to
+    move tensors to a model's device, but for dtype. No-ops on non-floating
+    tensors (bool/int/long) -- masks, token ids, and timestep-index tensors
+    must never be dtype-cast.
+
+    Args:
+        tensor: Tensor to cast (typically already device-moved).
+        reference: Module whose first parameter's dtype is the cast target.
+
+    Returns:
+        `tensor` cast to `reference`'s parameter dtype, or unchanged if
+        `tensor` is not floating-point.
+    """
+    if not tensor.is_floating_point():
+        return tensor
+    return tensor.to(dtype=next(reference.parameters()).dtype)

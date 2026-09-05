@@ -13,6 +13,7 @@ from typing import Any, Callable, Optional
 
 import torch
 
+from comfyui_fluxflow.nodes.utils import to_model_dtype
 from comfyui_fluxflow.schedulers import PREDICTION_TYPES, create_scheduler, get_scheduler_list
 
 # fluxflow-core >= v0.10.0 (m4-flow-redesign). Declared Optional so the legacy
@@ -149,9 +150,9 @@ class FluxFlowSampler:
         # Get device
         device = next(model.parameters()).device
 
-        # Move inputs to device
-        latent = latent.to(device)
-        text_seq = text_seq.to(device)
+        # Move inputs to device and dtype (text_mask is bool -- device-move only)
+        latent = to_model_dtype(latent.to(device), model.flow_processor)
+        text_seq = to_model_dtype(text_seq.to(device), model.flow_processor)
         text_mask = text_mask.to(device)
 
         # Create scheduler
@@ -181,7 +182,7 @@ class FluxFlowSampler:
                         "FLUXFLOW_TEXT tuple (text_seq, text_mask)."
                     )
                 neg_seq, neg_mask = negative_text
-                neg_seq = neg_seq.to(device)
+                neg_seq = to_model_dtype(neg_seq.to(device), model.flow_processor)
                 neg_mask = neg_mask.to(device)
 
         # Denoising loop

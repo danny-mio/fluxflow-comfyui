@@ -6,7 +6,7 @@ Handles empty latent generation, VAE encode, and VAE decode.
 
 import torch
 
-from comfyui_fluxflow.nodes.utils import comfy_image_to_flux, flux_image_to_comfy
+from comfyui_fluxflow.nodes.utils import comfy_image_to_flux, flux_image_to_comfy, to_model_dtype
 
 
 class FluxFlowEmptyLatent:
@@ -133,9 +133,9 @@ class FluxFlowVAEEncode:
         # Convert ComfyUI format to FluxFlow format
         flux_image = comfy_image_to_flux(image)  # [B, C, H, W] in [-1, 1]
 
-        # Move to model device
+        # Move to model device and dtype
         device = next(model.parameters()).device
-        flux_image = flux_image.to(device)
+        flux_image = to_model_dtype(flux_image.to(device), model.compressor)
 
         # Encode
         with torch.no_grad():
@@ -174,9 +174,9 @@ class FluxFlowVAEDecode:
         Returns:
             (image,) - ComfyUI image [B, H, W, C] in [0, 1]
         """
-        # Move to model device
+        # Move to model device and dtype
         device = next(model.parameters()).device
-        latent = latent.to(device)
+        latent = to_model_dtype(latent.to(device), model.expander)
 
         # Decode (SPADE/context always active)
         with torch.no_grad():

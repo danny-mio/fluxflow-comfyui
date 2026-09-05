@@ -75,6 +75,16 @@ Not yet released — work in progress toward v0.10.0.
 - The `config_info` version string always showed a stale/default value
   (`getattr(pipeline, "version", ...)` — no such attribute is ever set) —
   now re-detected from the checkpoint's own state-dict keys for display.
+- **Dtype mismatch when running inference with a non-fp32 model load**:
+  `FluxFlowModelLoader`'s `dtype` option (fp16/bf16) cast the model's
+  weights, but `FluxFlowVAEEncode`, `FluxFlowVAEDecode`, and
+  `FluxFlowSampler` only moved their input tensors to the model's *device*,
+  never its *dtype* — raising `RuntimeError: expected scalar type Float but
+  found BFloat16/Half` on the first VAE/flow-processor call. These nodes now
+  cast floating-point tensors (image/latent/text_seq) to match the loaded
+  model's dtype at the same point they're moved to its device; integer/bool
+  tensors (e.g. `text_mask`) are left untouched. New `to_model_dtype()`
+  helper in `nodes/utils.py`.
 
 ### Added
 - Optional `text_encoder_path` input on `FluxFlowModelLoader`, overriding
