@@ -76,6 +76,8 @@ pip install -r fluxflow-comfyui/requirements.txt
 **Inputs**:
 - `checkpoint_path` (STRING): Path to .safetensors file
 - `device` (COMBO): auto, cuda, cpu, mps (default: auto)
+- `dtype` (COMBO): fp32, fp16, bf16 (default: fp32) — inference precision;
+  weights load in their native dtype, then get cast on the device move
 - `tokenizer_name` (STRING): HuggingFace tokenizer (default: distilbert-base-uncased)
 
 **Outputs**:

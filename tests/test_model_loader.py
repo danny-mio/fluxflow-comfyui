@@ -3,6 +3,7 @@
 from unittest.mock import Mock, patch
 
 import pytest
+import torch
 
 from comfyui_fluxflow.nodes.model_loader import FluxFlowModelLoader
 
@@ -393,3 +394,227 @@ class TestFluxFlowModelLoaderDocumentation:
         docstring = FluxFlowModelLoader.__doc__.lower()
 
         assert "auto" in docstring or "detect" in docstring
+
+
+class TestFluxFlowModelLoaderDtypeSchema:
+    """Tests for the dtype selector on FluxFlowModelLoader."""
+
+    def test_optional_dtype_input(self):
+        """Should have dtype as optional input."""
+        input_types = FluxFlowModelLoader.INPUT_TYPES()
+
+        assert "dtype" in input_types["optional"]
+
+    def test_dtype_options(self):
+        """dtype should offer fp32, fp16, bf16."""
+        input_types = FluxFlowModelLoader.INPUT_TYPES()
+        dtype_options = input_types["optional"]["dtype"][0]
+
+        assert dtype_options == ["fp32", "fp16", "bf16"]
+
+    def test_dtype_default(self):
+        """dtype should default to 'fp32'."""
+        input_types = FluxFlowModelLoader.INPUT_TYPES()
+        dtype_config = input_types["optional"]["dtype"][1]
+
+        assert dtype_config["default"] == "fp32"
+
+
+_DTYPE_CASES = [
+    ("fp32", None),
+    ("fp16", torch.float16),
+    ("bf16", torch.bfloat16),
+]
+
+
+class TestFluxFlowModelLoaderDtypeVersionedBranch:
+    """dtype casting for the versioned-directory-checkpoint branch."""
+
+    @pytest.mark.parametrize("dtype_name,expected_dtype", _DTYPE_CASES)
+    @patch("comfyui_fluxflow.nodes.model_loader.BertTextEncoder")
+    @patch("comfyui_fluxflow.nodes.model_loader.AutoTokenizer.from_pretrained")
+    @patch("comfyui_fluxflow.nodes.model_loader.load_versioned_checkpoint")
+    @patch("comfyui_fluxflow.nodes.model_loader.parse_device")
+    def test_versioned_branch_applies_dtype(
+        self,
+        mock_parse_device,
+        mock_load_versioned,
+        mock_tokenizer,
+        mock_bert_cls,
+        dtype_name,
+        expected_dtype,
+        tmp_path,
+    ):
+        device_obj = torch.device("cpu")
+        mock_parse_device.return_value = device_obj
+
+        mock_pipeline = Mock()
+        mock_pipeline.to.return_value = mock_pipeline
+        mock_load_versioned.return_value = mock_pipeline
+
+        mock_text_encoder = Mock()
+        mock_text_encoder.to.return_value = mock_text_encoder
+        mock_text_encoder.embed_dim = 1024
+        mock_bert_cls.return_value = mock_text_encoder
+
+        mock_tokenizer_obj = Mock()
+        mock_tokenizer_obj.pad_token = "[PAD]"
+        mock_tokenizer.return_value = mock_tokenizer_obj
+
+        loader = FluxFlowModelLoader()
+        loader.load_model(checkpoint_path=str(tmp_path), device="cpu", dtype=dtype_name)
+
+        _, pipeline_kwargs = mock_pipeline.to.call_args
+        _, text_encoder_kwargs = mock_text_encoder.to.call_args
+
+        assert pipeline_kwargs.get("device") == device_obj
+        assert text_encoder_kwargs.get("device") == device_obj
+
+        if expected_dtype is None:
+            assert "dtype" not in pipeline_kwargs
+            assert "dtype" not in text_encoder_kwargs
+        else:
+            assert pipeline_kwargs.get("dtype") == expected_dtype
+            assert text_encoder_kwargs.get("dtype") == expected_dtype
+
+
+class TestFluxFlowModelLoaderDtypeLegacyV3Branch:
+    """dtype casting for the legacy v0.3.0 architecture-detection branch."""
+
+    @pytest.mark.parametrize("dtype_name,expected_dtype", _DTYPE_CASES)
+    def test_legacy_v3_branch_applies_dtype(self, dtype_name, expected_dtype):
+        device_obj = torch.device("cpu")
+
+        mock_diffuser = Mock()
+        mock_diffuser.to.return_value = mock_diffuser
+        mock_diffuser.load_state_dict.return_value = ([], [])
+        mock_text_encoder = Mock()
+        mock_text_encoder.to.return_value = mock_text_encoder
+
+        with (
+            patch("comfyui_fluxflow.nodes.model_loader.parse_device", return_value=device_obj),
+            patch(
+                "comfyui_fluxflow.nodes.model_loader.safetensors.torch.load_file",
+                return_value={},
+            ),
+            patch(
+                "comfyui_fluxflow.nodes.model_loader.AutoTokenizer.from_pretrained",
+                return_value=Mock(pad_token="[PAD]"),
+            ),
+            patch(
+                "comfyui_fluxflow.nodes.model_loader.get_model_info",
+                return_value={
+                    "vae_dim": 128,
+                    "flow_dim": 512,
+                    "text_embed_dim": 1024,
+                    "downscales": 3,
+                    "upscales": 3,
+                    "max_hw": 1024,
+                    "compression_ratio": 8,
+                },
+            ),
+            patch("comfyui_fluxflow.nodes.model_loader.FluxCompressor", return_value=Mock()),
+            patch("comfyui_fluxflow.nodes.model_loader.FluxFlowProcessor", return_value=Mock()),
+            patch("comfyui_fluxflow.nodes.model_loader.FluxExpander", return_value=Mock()),
+            patch("comfyui_fluxflow.nodes.model_loader.FluxPipeline", return_value=mock_diffuser),
+            patch(
+                "comfyui_fluxflow.nodes.model_loader.BertTextEncoder",
+                return_value=mock_text_encoder,
+            ),
+        ):
+            loader = FluxFlowModelLoader()
+            loader.load_model(
+                checkpoint_path="/fake/path.safetensors", device="cpu", dtype=dtype_name
+            )
+
+        _, diffuser_kwargs = mock_diffuser.to.call_args
+        _, text_encoder_kwargs = mock_text_encoder.to.call_args
+
+        assert diffuser_kwargs.get("device") == device_obj
+        assert text_encoder_kwargs.get("device") == device_obj
+
+        if expected_dtype is None:
+            assert "dtype" not in diffuser_kwargs
+            assert "dtype" not in text_encoder_kwargs
+        else:
+            assert diffuser_kwargs.get("dtype") == expected_dtype
+            assert text_encoder_kwargs.get("dtype") == expected_dtype
+
+
+class TestFluxFlowModelLoaderDtypeV100Branch:
+    """dtype casting for the auto-detected v0.10.0 architecture branch."""
+
+    @pytest.mark.parametrize("dtype_name,expected_dtype", _DTYPE_CASES)
+    def test_v100_branch_applies_dtype(self, dtype_name, expected_dtype):
+        device_obj = torch.device("cpu")
+
+        mock_diffuser = Mock()
+        mock_diffuser.to.return_value = mock_diffuser
+        mock_text_encoder = Mock()
+        mock_text_encoder.to.return_value = mock_text_encoder
+
+        mock_flux_pipeline_cls = Mock(return_value=mock_diffuser)
+        mock_flux_pipeline_cls._detect_config.return_value = {
+            "vae_dim": 128,
+            "flow_dim": 512,
+            "downscales": 3,
+            "upscales": 3,
+            "max_hw": 1024,
+            "flow_attn_heads": 8,
+            "text_embed_dim": 1024,
+            "flow_transformer_layers": 10,
+        }
+
+        with (
+            patch("comfyui_fluxflow.nodes.model_loader.parse_device", return_value=device_obj),
+            patch(
+                "comfyui_fluxflow.nodes.model_loader.safetensors.torch.load_file",
+                return_value={},
+            ),
+            patch(
+                "comfyui_fluxflow.nodes.model_loader.AutoTokenizer.from_pretrained",
+                return_value=Mock(pad_token="[PAD]"),
+            ),
+            patch(
+                "comfyui_fluxflow.nodes.model_loader.detect_architecture_version",
+                return_value="0.10.0",
+            ),
+            patch("comfyui_fluxflow.nodes.model_loader.FluxPipeline", mock_flux_pipeline_cls),
+            patch(
+                "comfyui_fluxflow.nodes.model_loader.BertTextEncoder",
+                return_value=mock_text_encoder,
+            ),
+            patch("fluxflow.models.v100.vae.FluxCompressor_v100", return_value=Mock()),
+            patch("fluxflow.models.v100.vae.FluxExpander_v100", return_value=Mock()),
+            patch("fluxflow.models.v100.flow.FluxFlowProcessor_v100", return_value=Mock()),
+        ):
+            loader = FluxFlowModelLoader()
+            loader.load_model(
+                checkpoint_path="/fake/path.safetensors", device="cpu", dtype=dtype_name
+            )
+
+        _, diffuser_kwargs = mock_diffuser.to.call_args
+        _, text_encoder_kwargs = mock_text_encoder.to.call_args
+
+        assert diffuser_kwargs.get("device") == device_obj
+        assert text_encoder_kwargs.get("device") == device_obj
+
+        if expected_dtype is None:
+            assert "dtype" not in diffuser_kwargs
+            assert "dtype" not in text_encoder_kwargs
+        else:
+            assert diffuser_kwargs.get("dtype") == expected_dtype
+            assert text_encoder_kwargs.get("dtype") == expected_dtype
+
+
+class TestFluxFlowModelLoaderDtypeValidation:
+    """Tests for dtype input validation."""
+
+    @patch("comfyui_fluxflow.nodes.model_loader.parse_device")
+    def test_invalid_dtype_raises_value_error(self, mock_parse_device):
+        """Should raise a clear error for an unrecognized dtype string."""
+        mock_parse_device.return_value = torch.device("cpu")
+        loader = FluxFlowModelLoader()
+
+        with pytest.raises(ValueError, match="dtype"):
+            loader.load_model(checkpoint_path="/fake/path.safetensors", dtype="int8")

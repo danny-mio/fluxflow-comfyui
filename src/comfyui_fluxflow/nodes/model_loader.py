@@ -27,6 +27,15 @@ from comfyui_fluxflow.nodes.utils import parse_device
 
 logger = logging.getLogger(__name__)
 
+# Inference-time precision options, matching the fp16/bf16 options already
+# available for training. "fp32" maps to None -- no `.to(dtype=...)` call is
+# made, keeping that path behaviorally identical to before this option existed.
+_DTYPE_MAP: dict = {
+    "fp32": None,
+    "fp16": torch.float16,
+    "bf16": torch.bfloat16,
+}
+
 
 def _detect_display_version(checkpoint_path: str) -> str:
     """Re-detect architecture version from a checkpoint's own keys, for display only.
@@ -78,6 +87,10 @@ class FluxFlowModelLoader:
                     ["auto", "cuda", "cpu", "mps"],
                     {"default": "auto"},
                 ),
+                "dtype": (
+                    ["fp32", "fp16", "bf16"],
+                    {"default": "fp32"},
+                ),
                 "tokenizer_name": (
                     "STRING",
                     {
@@ -112,6 +125,7 @@ class FluxFlowModelLoader:
         self,
         checkpoint_path: str,
         device: str = "auto",
+        dtype: str = "fp32",
         tokenizer_name: str = "distilbert-base-uncased",
         text_encoder_path: str = "",
     ):
@@ -121,6 +135,10 @@ class FluxFlowModelLoader:
         Args:
             checkpoint_path: Path to checkpoint (versioned directory or legacy file)
             device: Device to load model on (auto, cuda, cpu, mps)
+            dtype: Inference precision to cast the loaded model to
+                (fp32, fp16, bf16). Weights are always loaded in their native
+                dtype first; the cast happens afterward, same as the device
+                move. "fp32" makes no dtype cast at all.
             tokenizer_name: HuggingFace tokenizer name
             text_encoder_path: Optional explicit path to text-encoder weights
                 (.safetensors), overriding both the sibling file and any
@@ -128,7 +146,14 @@ class FluxFlowModelLoader:
 
         Returns:
             (model, text_encoder, tokenizer, config_info)
+
+        Raises:
+            ValueError: If dtype is not one of fp32, fp16, bf16.
         """
+        if dtype not in _DTYPE_MAP:
+            raise ValueError(f"Unknown dtype: {dtype}")
+        torch_dtype = _DTYPE_MAP[dtype]
+
         text_encoder_override = text_encoder_path or None
         logger.info("=" * 60)
         logger.info("FluxFlow Model Loader")
@@ -138,6 +163,13 @@ class FluxFlowModelLoader:
         # Parse device
         device_obj = parse_device(device)
         logger.info(f"Device: {device_obj}")
+        logger.info(f"Dtype: {dtype}")
+
+        # kwargs shared by every `.to()` call below -- dtype is only included
+        # when it's not fp32, so the default path stays behaviorally identical.
+        move_kwargs: dict = {"device": device_obj}
+        if torch_dtype is not None:
+            move_kwargs["dtype"] = torch_dtype
 
         # Try versioned loading first (new format with metadata)
         try:
@@ -164,8 +196,8 @@ class FluxFlowModelLoader:
                 )
 
                 # Ensure models are on device and in eval mode
-                pipeline.to(device_obj)
-                text_encoder.to(device_obj)
+                pipeline.to(**move_kwargs)
+                text_encoder.to(**move_kwargs)
                 pipeline.eval()
                 text_encoder.eval()
 
@@ -215,8 +247,8 @@ class FluxFlowModelLoader:
                     )
 
                     # Ensure models are on device and in eval mode
-                    pipeline.to(device_obj)
-                    text_encoder.to(device_obj)
+                    pipeline.to(**move_kwargs)
+                    text_encoder.to(**move_kwargs)
                     pipeline.eval()
                     text_encoder.eval()
 
@@ -355,8 +387,8 @@ class FluxFlowModelLoader:
                     checkpoint_path, override_path=text_encoder_override
                 )
 
-                diffuser = diffuser.to(device_obj)
-                text_encoder = text_encoder.to(device_obj)
+                diffuser = diffuser.to(**move_kwargs)
+                text_encoder = text_encoder.to(**move_kwargs)
                 diffuser.eval()
                 text_encoder.eval()
 
@@ -458,8 +490,8 @@ class FluxFlowModelLoader:
             text_encoder.load_with_override(checkpoint_path, override_path=text_encoder_override)
 
             # Move to device and set eval mode
-            diffuser = diffuser.to(device_obj)
-            text_encoder = text_encoder.to(device_obj)
+            diffuser = diffuser.to(**move_kwargs)
+            text_encoder = text_encoder.to(**move_kwargs)
             diffuser.eval()
             text_encoder.eval()
 

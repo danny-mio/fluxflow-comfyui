@@ -80,6 +80,11 @@ Not yet released — work in progress toward v0.10.0.
 - Optional `text_encoder_path` input on `FluxFlowModelLoader`, overriding
   both the auto-discovered sibling `text_encoder.safetensors` and the
   checkpoint's bundled copy.
+- Optional `dtype` input (`fp32`/`fp16`/`bf16`, default `fp32`) on
+  `FluxFlowModelLoader`, matching the fp16/bf16 options already available
+  for training. Weights still load in their native dtype; the cast is
+  applied at the existing device-move step, so `fp32` behaves exactly as
+  before.
 
 ## [0.8.0] - 2026-02-21
 
