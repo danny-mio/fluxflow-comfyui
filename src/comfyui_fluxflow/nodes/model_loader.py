@@ -57,6 +57,35 @@ def _detect_display_version(checkpoint_path: str) -> str:
         return "unknown"
 
 
+def _detect_activation_type(checkpoint_path: str, force: str = "auto") -> str:
+    """Resolve activation_type ('bezier'/'pade') for a checkpoint.
+
+    `force` overrides the checkpoint's own metadata when not "auto" -- the
+    ComfyUI-side equivalent of fluxflow-core's `force_activation_type` kwarg
+    on `load_versioned_checkpoint`. Reading the metadata requires the
+    lower-level `safetensors.safe_open` API (`safetensors.torch.load_file`
+    used elsewhere in this module returns only tensors). Checkpoints saved
+    before this feature, `.pth` checkpoints, or any read failure all default
+    to "bezier".
+    """
+    if force in ("bezier", "pade"):
+        return force
+    try:
+        cp = Path(checkpoint_path)
+        weights_path = cp
+        if cp.is_dir():
+            weights_path = cp / "model.safetensors"
+            if not weights_path.exists():
+                weights_path = cp / "flxflow_final.safetensors"
+        if weights_path.suffix != ".safetensors":
+            return "bezier"
+        with safetensors.safe_open(str(weights_path), framework="pt", device="cpu") as f:
+            metadata = f.metadata() or {}
+        return metadata.get("activation_type", "bezier")
+    except Exception:
+        return "bezier"
+
+
 class FluxFlowModelLoader:
     """
     Load FluxFlow checkpoint with automatic configuration detection.
@@ -90,6 +119,10 @@ class FluxFlowModelLoader:
                 "dtype": (
                     ["fp32", "fp16", "bf16"],
                     {"default": "fp32"},
+                ),
+                "activation_type": (
+                    ["auto", "bezier", "pade"],
+                    {"default": "auto"},
                 ),
                 "tokenizer_name": (
                     "STRING",
@@ -126,6 +159,7 @@ class FluxFlowModelLoader:
         checkpoint_path: str,
         device: str = "auto",
         dtype: str = "fp32",
+        activation_type: str = "auto",
         tokenizer_name: str = "distilbert-base-uncased",
         text_encoder_path: str = "",
     ):
@@ -139,6 +173,10 @@ class FluxFlowModelLoader:
                 (fp32, fp16, bf16). Weights are always loaded in their native
                 dtype first; the cast happens afterward, same as the device
                 move. "fp32" makes no dtype cast at all.
+            activation_type: Activation family for v0.10.0 models --
+                "auto" (default) reads it from the checkpoint's own metadata
+                (falling back to "bezier" if absent), or force "bezier"/"pade"
+                to override. Ignored for pre-v0.10.0 checkpoints.
             tokenizer_name: HuggingFace tokenizer name
             text_encoder_path: Optional explicit path to text-encoder weights
                 (.safetensors), overriding both the sibling file and any
@@ -153,6 +191,12 @@ class FluxFlowModelLoader:
         if dtype not in _DTYPE_MAP:
             raise ValueError(f"Unknown dtype: {dtype}")
         torch_dtype = _DTYPE_MAP[dtype]
+
+        # Only passed to load_versioned_checkpoint when the user explicitly
+        # forces a family; "auto" lets it read the checkpoint's own metadata.
+        activation_kwargs = (
+            {"force_activation_type": activation_type} if activation_type != "auto" else {}
+        )
 
         text_encoder_override = text_encoder_path or None
         logger.info("=" * 60)
@@ -178,7 +222,9 @@ class FluxFlowModelLoader:
             if checkpoint_path_obj.is_dir():
                 # Versioned checkpoint (directory with metadata.json + model.safetensors)
                 logger.info("Loading versioned checkpoint...")
-                pipeline = load_versioned_checkpoint(Path(checkpoint_path), str(device_obj))
+                pipeline = load_versioned_checkpoint(
+                    Path(checkpoint_path), str(device_obj), **activation_kwargs
+                )
                 diffuser = pipeline
 
                 # Load text_encoder separately (not included in versioned checkpoints)
@@ -230,7 +276,9 @@ class FluxFlowModelLoader:
                 # Try legacy versioned loading (single file with metadata)
                 try:
                     logger.info("Attempting legacy versioned loading...")
-                    pipeline = load_versioned_checkpoint(Path(checkpoint_path), str(device_obj))
+                    pipeline = load_versioned_checkpoint(
+                    Path(checkpoint_path), str(device_obj), **activation_kwargs
+                )
                     diffuser = pipeline
 
                     # Load text_encoder separately
@@ -341,6 +389,9 @@ class FluxFlowModelLoader:
 
                 v100_config = FluxPipeline._detect_config(state_dict)
                 vae_latent_dim = v100_config["vae_dim"]
+                resolved_activation_type = _detect_activation_type(
+                    checkpoint_path, force=activation_type
+                )
 
                 def get_valid_n_head_v100(d_model, preferred_heads=8):
                     if d_model % preferred_heads == 0:
@@ -359,6 +410,7 @@ class FluxFlowModelLoader:
                     d_model=vae_latent_dim,
                     downscales=v100_config["downscales"],
                     max_hw=v100_config.get("max_hw", 1024),
+                    activation_type=resolved_activation_type,
                 )
                 flow_processor = FluxFlowProcessor_v100(
                     d_model=v100_config["flow_dim"],
@@ -367,11 +419,13 @@ class FluxFlowModelLoader:
                     n_head=flow_attn_heads,
                     n_layers=v100_config.get("flow_transformer_layers", 10),
                     max_hw=v100_config.get("max_hw", 1024),
+                    activation_type=resolved_activation_type,
                 )
                 expander = FluxExpander_v100(
                     d_model=vae_latent_dim,
                     upscales=v100_config.get("upscales", v100_config["downscales"]),
                     max_hw=v100_config.get("max_hw", 1024),
+                    activation_type=resolved_activation_type,
                 )
 
                 diffuser = FluxPipeline(compressor, flow_processor, expander)
@@ -395,7 +449,8 @@ class FluxFlowModelLoader:
                 config_info = (
                     f"v0.10.0 auto-detected - VAE: {vae_latent_dim}d, "
                     f"Flow: {v100_config['flow_dim']}d, "
-                    f"Text: {v100_config.get('text_embed_dim', 1024)}d"
+                    f"Text: {v100_config.get('text_embed_dim', 1024)}d, "
+                    f"Activation: {resolved_activation_type}"
                 )
                 version = "0.10.0"
 

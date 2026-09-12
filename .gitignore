@@ -63,3 +63,4 @@ docs/plans/
 *_FIX.md
 AUDIT_RESPONSE.md
 CRITICAL_FIX.md
+.venv-test/

@@ -3,9 +3,10 @@
 from unittest.mock import Mock, patch
 
 import pytest
+import safetensors.torch
 import torch
 
-from comfyui_fluxflow.nodes.model_loader import FluxFlowModelLoader
+from comfyui_fluxflow.nodes.model_loader import FluxFlowModelLoader, _detect_activation_type
 
 
 class TestFluxFlowModelLoaderSchema:
@@ -618,3 +619,175 @@ class TestFluxFlowModelLoaderDtypeValidation:
 
         with pytest.raises(ValueError, match="dtype"):
             loader.load_model(checkpoint_path="/fake/path.safetensors", dtype="int8")
+
+
+class TestFluxFlowModelLoaderActivationTypeSchema:
+    """Tests for the activation_type selector on FluxFlowModelLoader."""
+
+    def test_optional_activation_type_input(self):
+        input_types = FluxFlowModelLoader.INPUT_TYPES()
+        assert "activation_type" in input_types["optional"]
+
+    def test_activation_type_options(self):
+        input_types = FluxFlowModelLoader.INPUT_TYPES()
+        options = input_types["optional"]["activation_type"][0]
+        assert options == ["auto", "bezier", "pade"]
+
+    def test_activation_type_default(self):
+        input_types = FluxFlowModelLoader.INPUT_TYPES()
+        config = input_types["optional"]["activation_type"][1]
+        assert config["default"] == "auto"
+
+
+class TestDetectActivationType:
+    """Tests for the module-level _detect_activation_type helper."""
+
+    def test_defaults_to_bezier_when_no_metadata(self, tmp_path):
+        path = tmp_path / "model.safetensors"
+        safetensors.torch.save_file({"w": torch.zeros(2)}, str(path))
+        assert _detect_activation_type(str(path)) == "bezier"
+
+    def test_reads_pade_from_metadata(self, tmp_path):
+        path = tmp_path / "model.safetensors"
+        safetensors.torch.save_file(
+            {"w": torch.zeros(2)}, str(path), metadata={"activation_type": "pade"}
+        )
+        assert _detect_activation_type(str(path)) == "pade"
+
+    def test_force_bezier_overrides_metadata(self, tmp_path):
+        path = tmp_path / "model.safetensors"
+        safetensors.torch.save_file(
+            {"w": torch.zeros(2)}, str(path), metadata={"activation_type": "pade"}
+        )
+        assert _detect_activation_type(str(path), force="bezier") == "bezier"
+
+    def test_force_pade_overrides_missing_metadata(self, tmp_path):
+        path = tmp_path / "model.safetensors"
+        safetensors.torch.save_file({"w": torch.zeros(2)}, str(path))
+        assert _detect_activation_type(str(path), force="pade") == "pade"
+
+    def test_resolves_directory_checkpoint_to_flxflow_final(self, tmp_path):
+        ckpt_dir = tmp_path / "ckpt"
+        ckpt_dir.mkdir()
+        path = ckpt_dir / "flxflow_final.safetensors"
+        safetensors.torch.save_file(
+            {"w": torch.zeros(2)}, str(path), metadata={"activation_type": "pade"}
+        )
+        assert _detect_activation_type(str(ckpt_dir)) == "pade"
+
+    def test_missing_file_defaults_to_bezier(self, tmp_path):
+        assert _detect_activation_type(str(tmp_path / "nope.safetensors")) == "bezier"
+
+
+class TestFluxFlowModelLoaderActivationTypeV100Branch:
+    """activation_type threading for the auto-detected v0.10.0 architecture branch."""
+
+    def test_v100_branch_reads_pade_from_checkpoint_metadata(self, tmp_path):
+        checkpoint_path = tmp_path / "flxflow_final.safetensors"
+        safetensors.torch.save_file(
+            {"diffuser.compressor.dummy": torch.zeros(2)},
+            str(checkpoint_path),
+            metadata={"activation_type": "pade"},
+        )
+
+        device_obj = torch.device("cpu")
+        mock_diffuser = Mock()
+        mock_diffuser.to.return_value = mock_diffuser
+        mock_text_encoder = Mock()
+        mock_text_encoder.to.return_value = mock_text_encoder
+
+        mock_flux_pipeline_cls = Mock(return_value=mock_diffuser)
+        mock_flux_pipeline_cls._detect_config.return_value = {
+            "vae_dim": 128,
+            "flow_dim": 512,
+            "downscales": 3,
+            "upscales": 3,
+            "max_hw": 1024,
+            "flow_attn_heads": 8,
+            "text_embed_dim": 1024,
+            "flow_transformer_layers": 10,
+        }
+
+        mock_compressor_cls = Mock(return_value=Mock())
+        mock_expander_cls = Mock(return_value=Mock())
+        mock_flow_cls = Mock(return_value=Mock())
+
+        with (
+            patch("comfyui_fluxflow.nodes.model_loader.parse_device", return_value=device_obj),
+            patch(
+                "comfyui_fluxflow.nodes.model_loader.AutoTokenizer.from_pretrained",
+                return_value=Mock(pad_token="[PAD]"),
+            ),
+            patch(
+                "comfyui_fluxflow.nodes.model_loader.detect_architecture_version",
+                return_value="0.10.0",
+            ),
+            patch("comfyui_fluxflow.nodes.model_loader.FluxPipeline", mock_flux_pipeline_cls),
+            patch(
+                "comfyui_fluxflow.nodes.model_loader.BertTextEncoder",
+                return_value=mock_text_encoder,
+            ),
+            patch("fluxflow.models.v100.vae.FluxCompressor_v100", mock_compressor_cls),
+            patch("fluxflow.models.v100.vae.FluxExpander_v100", mock_expander_cls),
+            patch("fluxflow.models.v100.flow.FluxFlowProcessor_v100", mock_flow_cls),
+        ):
+            loader = FluxFlowModelLoader()
+            loader.load_model(checkpoint_path=str(checkpoint_path), device="cpu")
+
+        assert mock_compressor_cls.call_args.kwargs["activation_type"] == "pade"
+        assert mock_flow_cls.call_args.kwargs["activation_type"] == "pade"
+        assert mock_expander_cls.call_args.kwargs["activation_type"] == "pade"
+
+    def test_v100_branch_force_bezier_overrides_pade_metadata(self, tmp_path):
+        checkpoint_path = tmp_path / "flxflow_final.safetensors"
+        safetensors.torch.save_file(
+            {"diffuser.compressor.dummy": torch.zeros(2)},
+            str(checkpoint_path),
+            metadata={"activation_type": "pade"},
+        )
+
+        device_obj = torch.device("cpu")
+        mock_diffuser = Mock()
+        mock_diffuser.to.return_value = mock_diffuser
+        mock_text_encoder = Mock()
+        mock_text_encoder.to.return_value = mock_text_encoder
+
+        mock_flux_pipeline_cls = Mock(return_value=mock_diffuser)
+        mock_flux_pipeline_cls._detect_config.return_value = {
+            "vae_dim": 128,
+            "flow_dim": 512,
+            "downscales": 3,
+            "upscales": 3,
+            "max_hw": 1024,
+            "flow_attn_heads": 8,
+            "text_embed_dim": 1024,
+            "flow_transformer_layers": 10,
+        }
+
+        mock_compressor_cls = Mock(return_value=Mock())
+
+        with (
+            patch("comfyui_fluxflow.nodes.model_loader.parse_device", return_value=device_obj),
+            patch(
+                "comfyui_fluxflow.nodes.model_loader.AutoTokenizer.from_pretrained",
+                return_value=Mock(pad_token="[PAD]"),
+            ),
+            patch(
+                "comfyui_fluxflow.nodes.model_loader.detect_architecture_version",
+                return_value="0.10.0",
+            ),
+            patch("comfyui_fluxflow.nodes.model_loader.FluxPipeline", mock_flux_pipeline_cls),
+            patch(
+                "comfyui_fluxflow.nodes.model_loader.BertTextEncoder",
+                return_value=mock_text_encoder,
+            ),
+            patch("fluxflow.models.v100.vae.FluxCompressor_v100", mock_compressor_cls),
+            patch("fluxflow.models.v100.vae.FluxExpander_v100", Mock(return_value=Mock())),
+            patch("fluxflow.models.v100.flow.FluxFlowProcessor_v100", Mock(return_value=Mock())),
+        ):
+            loader = FluxFlowModelLoader()
+            loader.load_model(
+                checkpoint_path=str(checkpoint_path), device="cpu", activation_type="bezier"
+            )
+
+        assert mock_compressor_cls.call_args.kwargs["activation_type"] == "bezier"
