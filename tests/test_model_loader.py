@@ -6,7 +6,11 @@ import pytest
 import safetensors.torch
 import torch
 
-from comfyui_fluxflow.nodes.model_loader import FluxFlowModelLoader, _detect_activation_type
+from comfyui_fluxflow.nodes.model_loader import (
+    FluxFlowModelLoader,
+    _detect_activation_type,
+    _has_pade_activations,
+)
 
 
 class TestFluxFlowModelLoaderSchema:
@@ -791,3 +795,61 @@ class TestFluxFlowModelLoaderActivationTypeV100Branch:
             )
 
         assert mock_compressor_cls.call_args.kwargs["activation_type"] == "bezier"
+
+
+_LOADER = "comfyui_fluxflow.nodes.model_loader"
+_RESULT = (Mock(), Mock(), Mock(), "info")
+
+
+class TestFluxFlowModelLoaderCompileActivationsSchema:
+    """compile_activations is an optional boolean, default off."""
+
+    def test_optional_input_default_false(self):
+        spec = FluxFlowModelLoader.INPUT_TYPES()["optional"]["compile_activations"]
+        assert spec[0] == "BOOLEAN"
+        assert spec[1]["default"] is False
+        assert "Pad" in spec[1]["tooltip"]
+
+    def test_not_required(self):
+        assert "compile_activations" not in FluxFlowModelLoader.INPUT_TYPES()["required"]
+
+
+class TestHasPadeActivations:
+    def test_detects_pade(self):
+        from fluxflow.models.pade_activation import TrainablePade
+
+        model = torch.nn.Sequential(torch.nn.Linear(2, 2), TrainablePade((2,)))
+        assert _has_pade_activations(model)
+
+    def test_no_pade(self):
+        assert not _has_pade_activations(torch.nn.Sequential(torch.nn.Linear(2, 2)))
+
+
+class TestFluxFlowModelLoaderCompileActivations:
+    """compile_pade_activations is called only when requested and model is Pade."""
+
+    def _run(self, has_pade, **kwargs):
+        with (
+            patch.object(FluxFlowModelLoader, "_load", return_value=_RESULT),
+            patch(f"{_LOADER}._has_pade_activations", return_value=has_pade),
+            patch(f"{_LOADER}.compile_pade_activations") as compile_mock,
+        ):
+            out = FluxFlowModelLoader().load_model(checkpoint_path="/x", **kwargs)
+        return out, compile_mock
+
+    def test_compiles_when_enabled_and_pade(self):
+        out, compile_mock = self._run(True, compile_activations=True)
+        compile_mock.assert_called_once_with()
+        assert out == _RESULT
+
+    def test_skips_when_not_pade(self):
+        _, compile_mock = self._run(False, compile_activations=True)
+        compile_mock.assert_not_called()
+
+    def test_skips_by_default(self):
+        _, compile_mock = self._run(True)
+        compile_mock.assert_not_called()
+
+    def test_skips_when_explicitly_false(self):
+        _, compile_mock = self._run(True, compile_activations=False)
+        compile_mock.assert_not_called()

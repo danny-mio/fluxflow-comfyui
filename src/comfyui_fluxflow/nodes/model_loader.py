@@ -19,6 +19,11 @@ from fluxflow.models import (
     FluxPipeline,
     detect_architecture_version,
 )
+from fluxflow.models.pade_activation import (
+    PadeActivationModule,
+    TrainablePade,
+    compile_pade_activations,
+)
 from fluxflow.models.versioning import load_versioned_checkpoint
 from transformers import AutoTokenizer
 
@@ -35,6 +40,11 @@ _DTYPE_MAP: dict = {
     "fp16": torch.float16,
     "bf16": torch.bfloat16,
 }
+
+
+def _has_pade_activations(model: torch.nn.Module) -> bool:
+    """True if any submodule is a Pade activation (compile target)."""
+    return any(isinstance(m, (PadeActivationModule, TrainablePade)) for m in model.modules())
 
 
 def _detect_display_version(checkpoint_path: str) -> str:
@@ -124,6 +134,16 @@ class FluxFlowModelLoader:
                     ["auto", "bezier", "pade"],
                     {"default": "auto"},
                 ),
+                "compile_activations": (
+                    "BOOLEAN",
+                    {
+                        "default": False,
+                        "tooltip": (
+                            "torch.compile Pad\u00e9 activations: faster after first run; "
+                            "Pad\u00e9 models only"
+                        ),
+                    },
+                ),
                 "tokenizer_name": (
                     "STRING",
                     {
@@ -154,7 +174,35 @@ class FluxFlowModelLoader:
     FUNCTION = "load_model"
     CATEGORY = "FluxFlow"
 
-    def load_model(  # noqa: C901
+    def load_model(
+        self,
+        checkpoint_path: str,
+        device: str = "auto",
+        dtype: str = "fp32",
+        activation_type: str = "auto",
+        tokenizer_name: str = "distilbert-base-uncased",
+        text_encoder_path: str = "",
+        compile_activations: bool = False,
+    ):
+        """Load the model (see `_load`); optionally torch.compile Pad\u00e9 activations.
+
+        compile_activations: when True and the loaded model uses Pad\u00e9
+        activations, calls fluxflow's process-wide, idempotent
+        `compile_pade_activations()`. Off by default; no-op for Bezier models.
+        """
+        result = self._load(
+            checkpoint_path,
+            device,
+            dtype,
+            activation_type,
+            tokenizer_name,
+            text_encoder_path,
+        )
+        if compile_activations and _has_pade_activations(result[0]):
+            compile_pade_activations()
+        return result
+
+    def _load(  # noqa: C901
         self,
         checkpoint_path: str,
         device: str = "auto",
@@ -277,8 +325,8 @@ class FluxFlowModelLoader:
                 try:
                     logger.info("Attempting legacy versioned loading...")
                     pipeline = load_versioned_checkpoint(
-                    Path(checkpoint_path), str(device_obj), **activation_kwargs
-                )
+                        Path(checkpoint_path), str(device_obj), **activation_kwargs
+                    )
                     diffuser = pipeline
 
                     # Load text_encoder separately
