@@ -853,3 +853,16 @@ class TestFluxFlowModelLoaderCompileActivations:
     def test_skips_when_explicitly_false(self):
         _, compile_mock = self._run(True, compile_activations=False)
         compile_mock.assert_not_called()
+
+
+class TestLoaderRocmSdpaWorkaround:
+    """load_model applies the SDPA workaround on the resolved device."""
+
+    @patch("comfyui_fluxflow.nodes.model_loader.apply_rocm_sdpa_workaround")
+    @patch("comfyui_fluxflow.nodes.model_loader.parse_device")
+    def test_workaround_called_with_resolved_device(self, mock_parse_device, mock_apply):
+        dev = torch.device("cpu")
+        mock_parse_device.return_value = dev
+        with pytest.raises(Exception):
+            FluxFlowModelLoader().load_model(checkpoint_path="/nonexistent.safetensors")
+        mock_apply.assert_called_once_with(dev)

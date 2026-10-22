@@ -4,7 +4,11 @@ Utility functions for ComfyUI FluxFlow plugin.
 Handles image format conversion between ComfyUI and FluxFlow formats.
 """
 
+import logging
+
 import torch
+
+logger = logging.getLogger(__name__)
 
 
 def comfy_image_to_flux(image: torch.Tensor) -> torch.Tensor:
@@ -69,6 +73,21 @@ def get_device_auto() -> torch.device:
     from fluxflow.utils.device import get_device as _core_get_device
 
     return _core_get_device()
+
+
+def apply_rocm_sdpa_workaround(device: torch.device) -> list[str]:
+    """
+    Disable broken ROCm AOTriton SDPA backends for the device models run on.
+
+    Delegates to fluxflow.utils.disable_broken_rocm_sdpa (cached per device,
+    no-op off ROCm). Returns the list of disabled backends.
+    """
+    from fluxflow.utils import disable_broken_rocm_sdpa
+
+    disabled = disable_broken_rocm_sdpa(device)
+    if disabled:
+        logger.warning(f"Disabled broken ROCm SDPA backends on {device}: {disabled}")
+    return disabled
 
 
 def parse_device(device_str: str) -> torch.device:

@@ -8,6 +8,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 Not yet released — work in progress toward v0.10.0.
 
+### Fixed
+- **ROCm (gfx1151) attention crash**: model loader now calls
+  `fluxflow.utils.disable_broken_rocm_sdpa` on the resolved device, disabling
+  broken AOTriton flash/mem-efficient SDPA backends (hipErrorInvalidValue).
+  No-op on non-ROCm builds; disabled backends are logged.
+
 ### Added (Experimental)
 - **AMD ROCm/gfx1151 support (experimental, unvalidated)**: `get_device_auto`/
   `parse_device` now delegate to `fluxflow.utils.device`, which distinguishes

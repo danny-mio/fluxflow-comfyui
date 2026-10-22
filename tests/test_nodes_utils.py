@@ -173,3 +173,23 @@ class TestFluxImageToComfy:
         result = flux_image_to_comfy(fp32_image)
 
         assert result.shape == (2, 8, 16, 3)
+
+
+class TestApplyRocmSdpaWorkaround:
+    """apply_rocm_sdpa_workaround delegates to the core probe and logs."""
+
+    def test_calls_probe_with_device(self):
+        from comfyui_fluxflow.nodes.utils import apply_rocm_sdpa_workaround
+
+        dev = torch.device("cpu")
+        with mock.patch("fluxflow.utils.disable_broken_rocm_sdpa", return_value=[]) as probe:
+            assert apply_rocm_sdpa_workaround(dev) == []
+        probe.assert_called_once_with(dev)
+
+    def test_logs_disabled_backends(self, caplog):
+        from comfyui_fluxflow.nodes.utils import apply_rocm_sdpa_workaround
+
+        with mock.patch("fluxflow.utils.disable_broken_rocm_sdpa", return_value=["flash"]):
+            with caplog.at_level("WARNING"):
+                assert apply_rocm_sdpa_workaround(torch.device("cpu")) == ["flash"]
+        assert "flash" in caplog.text

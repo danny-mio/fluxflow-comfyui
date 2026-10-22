@@ -28,7 +28,7 @@ from fluxflow.models.versioning import load_versioned_checkpoint
 from transformers import AutoTokenizer
 
 from comfyui_fluxflow.model_inspector import get_model_info
-from comfyui_fluxflow.nodes.utils import parse_device
+from comfyui_fluxflow.nodes.utils import apply_rocm_sdpa_workaround, parse_device
 
 logger = logging.getLogger(__name__)
 
@@ -255,6 +255,7 @@ class FluxFlowModelLoader:
         # Parse device
         device_obj = parse_device(device)
         logger.info(f"Device: {device_obj}")
+        apply_rocm_sdpa_workaround(device_obj)
         logger.info(f"Dtype: {dtype}")
 
         # kwargs shared by every `.to()` call below -- dtype is only included
