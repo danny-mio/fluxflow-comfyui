@@ -8,6 +8,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 Not yet released — work in progress toward v0.10.0.
 
+### Changed
+- **Model inspector (v100 decoder layout)**: `expander.upscale.layers.N.conv1.0.weight` is
+  now read as `[out_ch*5, in_ch, 3, 3]`; `detect_fluxflow_config` adds `upscale_channels`
+  (`[(in, out)]` per stage, ordered by index). Legacy ConvTranspose2d (kernel 16) checkpoints
+  raise `fluxflow.exceptions.IncompatibleCheckpointError`.
+- `FluxFlowVAEEncode` documents deterministic (mean) encode; z half is raw ~N(0,I).
+
 ### Fixed
 - **ROCm (gfx1151) attention crash**: model loader now calls
   `fluxflow.utils.disable_broken_rocm_sdpa` on the resolved device, disabling

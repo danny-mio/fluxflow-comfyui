@@ -29,8 +29,9 @@ def mock_checkpoint_state():
         "compressor.encoder_z.0.0.weight": torch.randn(64, 64, 3, 3),
         "compressor.encoder_z.1.0.weight": torch.randn(128, 64, 3, 3),
         # Upscale stages (expander layers - 2 stages)
-        "expander.upscale.layers.0.conv1.0.weight": torch.randn(64, 128, 3, 3),
-        "expander.upscale.layers.1.conv1.0.weight": torch.randn(64, 64, 3, 3),
+        # v100 layout: nearest x2 + Conv2d(in_ch, out_ch*5, 3); d_model=64, floor 16
+        "expander.upscale.layers.0.conv1.0.weight": torch.randn(160, 64, 3, 3),
+        "expander.upscale.layers.1.conv1.0.weight": torch.randn(80, 32, 3, 3),
         # VAE attention layers (token_attn - 2 layers)
         "compressor.token_attn.0.attn.in_proj_weight": torch.randn(192, 64),
         "compressor.token_attn.1.attn.in_proj_weight": torch.randn(192, 64),

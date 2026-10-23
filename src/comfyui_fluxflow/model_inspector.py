@@ -11,7 +11,41 @@ Automatically detects model architecture parameters from safetensors checkpoints
 
 from typing import Any, Dict
 
+import re
+
 import safetensors.torch
+from fluxflow.exceptions import IncompatibleCheckpointError
+
+_UPSAMPLE_KERNEL = 3  # v100 decoder upsample conv kernel (legacy ConvTranspose2d used 16)
+_BEZIER_CHANNELS = 5  # conv1 emits out_ch * 5 channels for the Bezier activation
+
+
+def _upscale_channels(f: Any, keys: list) -> list:
+    """Return [(in_ch, out_ch), ...] per decoder upsample stage, ordered by stage index.
+
+    v100 layout: ``conv1.0.weight`` is ``[out_ch*5, in_ch, 3, 3]``.
+
+    Raises:
+        IncompatibleCheckpointError: legacy ConvTranspose2d (kernel 16) layout.
+        ValueError: malformed weight shape.
+    """
+    pat = re.compile(r"expander\.upscale\.layers\.(\d+)\.conv1\.0\.weight$")
+    found = sorted((int(m.group(1)), k) for k in keys if (m := pat.search(k)))
+    channels = []
+    for _, key in found:
+        shape = tuple(f.get_tensor(key).shape)
+        if len(shape) != 4:
+            raise ValueError(f"Unexpected shape {shape} for {key}")
+        if shape[2:] != (_UPSAMPLE_KERNEL, _UPSAMPLE_KERNEL):
+            raise IncompatibleCheckpointError(
+                f"Legacy decoder layout in {key}: shape {shape} (ConvTranspose2d, kernel "
+                f"{shape[2]}) is incompatible with the v0.10.0 conv upsample "
+                f"[out_ch*5, in_ch, 3, 3]. Migrate or re-train the checkpoint."
+            )
+        if shape[0] % _BEZIER_CHANNELS:
+            raise ValueError(f"{key}: out channels {shape[0]} not a multiple of 5")
+        channels.append((shape[1], shape[0] // _BEZIER_CHANNELS))
+    return channels
 
 
 def detect_fluxflow_config(checkpoint_path: str) -> Dict[str, Any]:  # noqa: C901
@@ -28,6 +62,7 @@ def detect_fluxflow_config(checkpoint_path: str) -> Dict[str, Any]:  # noqa: C90
             - text_embed_dim: Text embedding dimension
             - downscales: Number of downsampling stages
             - upscales: Number of upsampling stages
+            - upscale_channels: [(in_ch, out_ch)] per upsample stage
             - vae_attn_layers: VAE attention layers
             - flow_transformer_layers: Flow transformer depth
             - flow_attn_heads: Flow attention heads
@@ -36,6 +71,7 @@ def detect_fluxflow_config(checkpoint_path: str) -> Dict[str, Any]:  # noqa: C90
 
     Raises:
         ValueError: If checkpoint format is invalid or configuration cannot be detected
+        IncompatibleCheckpointError: Legacy (pre-v0.10.0) decoder upsample layout
     """
     config = {}
 
@@ -97,10 +133,8 @@ def detect_fluxflow_config(checkpoint_path: str) -> Dict[str, Any]:  # noqa: C90
         encoder_stages = [k for k in keys if "compressor.encoder_z." in k and ".0.weight" in k]
         config["downscales"] = len(encoder_stages)
 
-        upscale_layers = [
-            k for k in keys if "expander.upscale.layers." in k and ".conv1.0.weight" in k
-        ]
-        config["upscales"] = len(upscale_layers)
+        config["upscale_channels"] = _upscale_channels(f, keys)
+        config["upscales"] = len(config["upscale_channels"])
 
         if config["downscales"] == 0:
             raise ValueError("Could not detect downscale stages from checkpoint")

@@ -129,6 +129,9 @@ class FluxFlowVAEEncode:
 
         Returns:
             (latent,) - Latent packet [B, T+1, D]
+
+        Deterministic (mean) encode: v100 compressors default to sample=False in eval.
+        The z half is the raw KL-regularised z (~N(0,I)), not LayerNorm'd.
         """
         # Convert ComfyUI format to FluxFlow format
         flux_image = comfy_image_to_flux(image)  # [B, C, H, W] in [-1, 1]

@@ -3,6 +3,7 @@
 import pytest
 import safetensors.torch
 import torch
+from fluxflow.exceptions import IncompatibleCheckpointError
 
 from comfyui_fluxflow.model_inspector import (
     detect_fluxflow_config,
@@ -10,6 +11,48 @@ from comfyui_fluxflow.model_inspector import (
     print_config,
     validate_config,
 )
+
+
+class TestUpscaleLayout:
+    """Decoder upsample layout: conv1.0.weight is [out_ch*5, in_ch, 3, 3]."""
+
+    def _detect(self, state, temp_dir):
+        path = temp_dir / "ckpt.safetensors"
+        safetensors.torch.save_file(state, str(path))
+        return detect_fluxflow_config(str(path))
+
+    def test_detects_upscale_channels(self, mock_checkpoint_state, temp_dir):
+        config = self._detect(mock_checkpoint_state, temp_dir)
+        assert config["upscale_channels"] == [(64, 32), (32, 16)]
+
+    def test_channel_floor_16(self, mock_checkpoint_state, temp_dir):
+        mock_checkpoint_state["expander.upscale.layers.1.conv1.0.weight"] = torch.randn(
+            80, 16, 3, 3
+        )
+        config = self._detect(mock_checkpoint_state, temp_dir)
+        assert config["upscale_channels"][-1][1] == 16
+
+    def test_legacy_convtranspose_rejected(self, mock_checkpoint_state, temp_dir):
+        # Legacy ConvTranspose2d: [in_ch, out_ch*5, 16, 16]
+        mock_checkpoint_state["expander.upscale.layers.0.conv1.0.weight"] = torch.randn(
+            64, 160, 16, 16
+        )
+        with pytest.raises(IncompatibleCheckpointError, match="legacy|ConvTranspose|re-train"):
+            self._detect(mock_checkpoint_state, temp_dir)
+
+    def test_out_channels_not_multiple_of_5_rejected(self, mock_checkpoint_state, temp_dir):
+        mock_checkpoint_state["expander.upscale.layers.0.conv1.0.weight"] = torch.randn(
+            64, 64, 3, 3
+        )
+        with pytest.raises(ValueError, match="multiple of 5"):
+            self._detect(mock_checkpoint_state, temp_dir)
+
+    def test_upscale_layers_sorted_by_index(self, mock_checkpoint_state, temp_dir):
+        w = mock_checkpoint_state
+        w["expander.upscale.layers.10.conv1.0.weight"] = torch.randn(80, 16, 3, 3)
+        config = self._detect(w, temp_dir)
+        assert config["upscales"] == 3
+        assert config["upscale_channels"][-1] == (16, 16)
 
 
 class TestDetectFluxFlowConfig:
