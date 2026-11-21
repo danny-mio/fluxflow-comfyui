@@ -8,34 +8,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 Not yet released — work in progress toward v0.10.0.
 
-### Changed
-- **Requires fluxflow-core with v0.10.0 latent stats and configurable VAE widths.**
-  The model loader's v0.10.0 auto-detect path now builds compressor/expander at the
-  checkpoint's own widths (`fluxflow.models.v100.infer_vae_widths`), so wide v0.10.0
-  checkpoints load. Pre-rework v0.10.0 checkpoints (affine `ctx_final_norm`, or widths
-  that differ from the model) are rejected by core with `IncompatibleCheckpointError`.
-  `FluxFlowVAEEncode` / `FluxFlowVAEDecode` call `compressor` / `expander` directly,
-  which normalize / denormalize the latent with its stored statistics; no node change.
-- **Model inspector (v100 decoder layout)**: `expander.upscale.layers.N.conv1.0.weight` is
-  now read as `[out_ch*5, in_ch, 3, 3]`; `detect_fluxflow_config` adds `upscale_channels`
-  (`[(in, out)]` per stage, ordered by index). Legacy ConvTranspose2d (kernel 16) checkpoints
-  raise `fluxflow.exceptions.IncompatibleCheckpointError`.
-- `FluxFlowVAEEncode` documents deterministic (mean) encode.
-
-### Fixed
-- **ROCm (gfx1151) attention crash**: model loader now calls
-  `fluxflow.utils.disable_broken_rocm_sdpa` on the resolved device, disabling
-  broken AOTriton flash/mem-efficient SDPA backends (hipErrorInvalidValue).
-  No-op on non-ROCm builds; disabled backends are logged.
-
-### Added (Experimental)
-- **AMD ROCm/gfx1151 support (experimental, unvalidated)**: `get_device_auto`/
-  `parse_device` now delegate to `fluxflow.utils.device`, which distinguishes
-  ROCm from real NVIDIA CUDA. No node-visible behavior change — ROCm-build
-  PyTorch already routed through the existing CUDA code path. See
-  `docs/ROCM.md` in fluxflow-core.
-- NPU (XDNA) acceleration was evaluated and deferred; not implemented.
-
 ### Changed (BREAKING — workflow re-wiring required)
 
 - **New `FLUXFLOW_TEXT` ComfyUI type** replaces `FLUXFLOW_CONDITIONING`
@@ -51,29 +23,38 @@ Not yet released — work in progress toward v0.10.0.
   legacy v0.6/0.7/0.8 processors receive a masked-mean-pooled `[B, E]` tensor
   via `_masked_mean_pool` for backwards compatibility.
 
-### Migration
+### Changed
+- **Requires fluxflow-core with v0.10.0 latent stats and configurable VAE widths.**
+  The model loader's v0.10.0 auto-detect path now builds compressor/expander at the
+  checkpoint's own widths (`fluxflow.models.v100.infer_vae_widths`), so wide v0.10.0
+  checkpoints load. Pre-rework v0.10.0 checkpoints (affine `ctx_final_norm`, or widths
+  that differ from the model) are rejected by core with `IncompatibleCheckpointError`.
+  `FluxFlowVAEEncode` / `FluxFlowVAEDecode` call `compressor` / `expander` directly,
+  which normalize / denormalize the latent with its stored statistics; no node change.
+- **Model inspector (v100 decoder layout)**: `expander.upscale.layers.N.conv1.0.weight` is
+  now read as `[out_ch*5, in_ch, 3, 3]`; `detect_fluxflow_config` adds `upscale_channels`
+  (`[(in, out)]` per stage, ordered by index). Legacy ConvTranspose2d (kernel 16) checkpoints
+  raise `fluxflow.exceptions.IncompatibleCheckpointError`.
+- `FluxFlowVAEEncode` documents deterministic (mean) encode.
+- numpy 2.x supported: `numpy<2.0` pin removed; floor raised to `numpy>=1.26.4` (scipy 1.17 requires it).
 
-- **Workflows saved with v0.8.x will fail to load** with a clear ComfyUI
-  type-mismatch error where TextEncode previously wired into
-  `FluxFlowSampler.conditioning`.
-- Re-wire `FluxFlowTextEncode.text` → `FluxFlowSampler.text` (and the
-  negative encoder into `negative_text` if using CFG).
-- See `TROUBLESHOOTING.md` ("Workflow won't load after v0.10.0 upgrade") for
-  the diagnostic and the full re-wiring procedure.
+### Added
+- Optional `text_encoder_path` input on `FluxFlowModelLoader`, overriding
+  both the auto-discovered sibling `text_encoder.safetensors` and the
+  checkpoint's bundled copy.
+- Optional `dtype` input (`fp32`/`fp16`/`bf16`, default `fp32`) on
+  `FluxFlowModelLoader`, matching the fp16/bf16 options already available
+  for training. Weights still load in their native dtype; the cast is
+  applied at the existing device-move step, so `fp32` behaves exactly as
+  before.
 
-### Known follow-ups
-
-- CFG null condition currently uses `zeros_like(text_seq)` with the positive
-  mask rather than an encoded empty prompt; this matches the legacy null path
-  but is intentionally not the encoded-empty-prompt path used elsewhere in
-  fluxflow-core. Tracked for a future release.
-
-### Updated
-
-- **`fluxflow` dependency** pinned to the
-  `fluxflow-core@feature/model-v0.10.0` branch during development (per-token
-  text encoder and v0.10.0 flow processor are required); this will become
-  `fluxflow>=0.10.0` after the PyPI release.
+### Added (Experimental)
+- **AMD ROCm/gfx1151 support (experimental, unvalidated)**: `get_device_auto`/
+  `parse_device` now delegate to `fluxflow.utils.device`, which distinguishes
+  ROCm from real NVIDIA CUDA. No node-visible behavior change — ROCm-build
+  PyTorch already routed through the existing CUDA code path. See
+  `docs/ROCM.md` in fluxflow-core.
+- NPU (XDNA) acceleration was evaluated and deferred; not implemented.
 
 ### Fixed
 - **Train/inference max-length mismatch**: `FluxFlowTextEncode` hardcoded
@@ -81,8 +62,8 @@ Not yet released — work in progress toward v0.10.0.
   tokens with no override and no truncation logging — the model was only
   ever trained on the first ~32 tokens, but the node silently allowed much
   longer prompts. Now imports a shared `DEFAULT_MAX_TEXT_LENGTH` constant
-  from `fluxflow-core` (falls back to `32` if the installed `fluxflow-core`
-  predates the constant), so this node can't silently diverge from
+  from `fluxflow-core` (fallback `128` if the installed `fluxflow-core`
+  predates the constant; core's default is now 128), so this node can't silently diverge from
   training's actual max length again.
 - `FluxFlowModelLoader` could not load v0.10.0 checkpoints at all: the
   legacy-detection heuristic checked for v0.8.0 (`pillar_cross_attn`/
@@ -122,16 +103,34 @@ Not yet released — work in progress toward v0.10.0.
   `nodes/utils.py` now always casts its output to float32 regardless of
   input dtype. `comfy_image_to_flux` (the encode direction) is intentionally
   left unchanged, since ComfyUI always supplies float32 images already.
+- **ROCm (gfx1151) attention crash**: model loader now calls
+  `fluxflow.utils.disable_broken_rocm_sdpa` on the resolved device, disabling
+  broken AOTriton flash/mem-efficient SDPA backends (hipErrorInvalidValue).
+  No-op on non-ROCm builds; disabled backends are logged.
 
-### Added
-- Optional `text_encoder_path` input on `FluxFlowModelLoader`, overriding
-  both the auto-discovered sibling `text_encoder.safetensors` and the
-  checkpoint's bundled copy.
-- Optional `dtype` input (`fp32`/`fp16`/`bf16`, default `fp32`) on
-  `FluxFlowModelLoader`, matching the fp16/bf16 options already available
-  for training. Weights still load in their native dtype; the cast is
-  applied at the existing device-move step, so `fp32` behaves exactly as
-  before.
+### Migration
+
+- **Workflows saved with v0.8.x will fail to load** with a clear ComfyUI
+  type-mismatch error where TextEncode previously wired into
+  `FluxFlowSampler.conditioning`.
+- Re-wire `FluxFlowTextEncode.text` → `FluxFlowSampler.text` (and the
+  negative encoder into `negative_text` if using CFG).
+- See `TROUBLESHOOTING.md` ("Workflow won't load after v0.10.0 upgrade") for
+  the diagnostic and the full re-wiring procedure.
+
+### Known follow-ups
+
+- CFG null condition currently uses `zeros_like(text_seq)` with the positive
+  mask rather than an encoded empty prompt; this matches the legacy null path
+  but is intentionally not the encoded-empty-prompt path used elsewhere in
+  fluxflow-core. Tracked for a future release.
+
+### Updated
+
+- **`fluxflow` dependency** pinned to the
+  `fluxflow-core@feature/model-v0.10.0` branch during development (per-token
+  text encoder and v0.10.0 flow processor are required); this will become
+  `fluxflow>=0.10.0` after the PyPI release.
 
 ## [0.8.0] - 2026-02-21
 
