@@ -18,7 +18,7 @@ try:
     # same value if the installed fluxflow-core predates this constant.
     from fluxflow.text_length import DEFAULT_MAX_TEXT_LENGTH
 except ImportError:  # pragma: no cover - stale fluxflow-core install
-    DEFAULT_MAX_TEXT_LENGTH = 32
+    DEFAULT_MAX_TEXT_LENGTH = 128
 
 
 def _tokenize_and_encode(text_encoder, tokenizer, text):

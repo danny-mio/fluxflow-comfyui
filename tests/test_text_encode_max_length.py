@@ -33,8 +33,8 @@ def _make_tokenizer_and_encoder(seq_len: int = DEFAULT_MAX_TEXT_LENGTH):
     return tokenizer, text_encoder
 
 
-def test_default_is_32():
-    assert DEFAULT_MAX_TEXT_LENGTH == 32
+def test_default_is_128():
+    assert DEFAULT_MAX_TEXT_LENGTH == 128
 
 
 def test_tokenize_and_encode_uses_shared_default():
