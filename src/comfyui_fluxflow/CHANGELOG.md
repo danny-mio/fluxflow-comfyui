@@ -9,7 +9,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 Not yet released — work in progress toward v0.10.0.
 
 ### Changed (BREAKING — workflow re-wiring required)
-
 - **New `FLUXFLOW_TEXT` ComfyUI type** replaces `FLUXFLOW_CONDITIONING`
   - `FluxFlowTextEncode` and `FluxFlowTextEncodeNegative` now return
     `((text_seq, text_mask),)` typed as `("FLUXFLOW_TEXT",)` — a per-token
@@ -47,8 +46,6 @@ Not yet released — work in progress toward v0.10.0.
   for training. Weights still load in their native dtype; the cast is
   applied at the existing device-move step, so `fp32` behaves exactly as
   before.
-
-### Added (Experimental)
 - **AMD ROCm/gfx1151 support (experimental, unvalidated)**: `get_device_auto`/
   `parse_device` now delegate to `fluxflow.utils.device`, which distinguishes
   ROCm from real NVIDIA CUDA. No node-visible behavior change — ROCm-build
@@ -109,7 +106,6 @@ Not yet released — work in progress toward v0.10.0.
   No-op on non-ROCm builds; disabled backends are logged.
 
 ### Migration
-
 - **Workflows saved with v0.8.x will fail to load** with a clear ComfyUI
   type-mismatch error where TextEncode previously wired into
   `FluxFlowSampler.conditioning`.
@@ -119,14 +115,12 @@ Not yet released — work in progress toward v0.10.0.
   the diagnostic and the full re-wiring procedure.
 
 ### Known follow-ups
-
 - CFG null condition currently uses `zeros_like(text_seq)` with the positive
   mask rather than an encoded empty prompt; this matches the legacy null path
   but is intentionally not the encoded-empty-prompt path used elsewhere in
   fluxflow-core. Tracked for a future release.
 
 ### Updated
-
 - **`fluxflow` dependency** pinned to the
   `fluxflow-core@feature/model-v0.10.0` branch during development (per-token
   text encoder and v0.10.0 flow processor are required); this will become

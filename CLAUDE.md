@@ -11,7 +11,7 @@ FluxFlow ComfyUI is a custom nodes package for ComfyUI that integrates FluxFlow 
 - **Sampling**: 14 different schedulers (Euler, DPM++, DDIM, LCM, etc.)
 - **VAE Operations**: Encode images to latents, decode latents to images
 - **Latent Generation**: Create empty latent tensors at various resolutions
-- **6 Custom Nodes**: Complete workflow for text-to-image generation
+- **7 Custom Nodes**: Complete workflow for text-to-image generation
 
 **Version**: 0.10.0
 
@@ -49,7 +49,10 @@ make clean                        # Clean build artifacts
 
 ## Architecture
 
-FluxFlow ComfyUI provides 6 custom nodes that integrate with ComfyUI's node graph system:
+FluxFlow ComfyUI provides 7 custom nodes (`NODE_CLASS_MAPPINGS` in
+`src/comfyui_fluxflow/__init__.py`): `FluxFlowModelLoader`, `FluxFlowTextEncode`,
+`FluxFlowTextEncodeNegative`, `FluxFlowEmptyLatent`, `FluxFlowVAEEncode`,
+`FluxFlowVAEDecode`, `FluxFlowSampler`. Basic text-to-image graph:
 
 ```
 [FluxFlowModelLoader] → model
@@ -78,7 +81,7 @@ fluxflow-comfyui/
 │   ├── nodes/
 │   │   ├── __init__.py          # Node exports
 │   │   ├── model_loader.py      # FluxFlowModelLoader
-│   │   ├── text_encode.py       # FluxFlowTextEncode
+│   │   ├── text_encode.py       # FluxFlowTextEncode, FluxFlowTextEncodeNegative
 │   │   ├── latent_ops.py        # EmptyLatent, VAEEncode, VAEDecode
 │   │   ├── samplers.py          # FluxFlowSampler
 │   │   └── utils.py             # Node utilities
@@ -298,8 +301,11 @@ from fluxflow.models import BertTextEncoder
 tokenizer = DistilBertTokenizer.from_pretrained('distilbert-base-uncased')
 encoder = BertTextEncoder(embed_dim=1024)
 
-tokens = tokenizer(prompt, return_tensors='pt', max_length=512, truncation=True)
-embeddings = encoder(tokens['input_ids'], tokens['attention_mask'])
+from fluxflow.text_length import DEFAULT_MAX_TEXT_LENGTH  # 128
+
+tokens = tokenizer(prompt, return_tensors='pt', max_length=DEFAULT_MAX_TEXT_LENGTH,
+                   padding='max_length', truncation=True)
+text_seq, text_mask = encoder(tokens['input_ids'], tokens['attention_mask'])
 ```
 
 ### Scheduler Configuration
@@ -332,20 +338,21 @@ FluxFlow uses packet-based latent representation:
 
 ```python
 # Shape: [B, T+1, D]
-# - B: batch size
-# - T: number of tokens (H*W/256)
-# - +1: HW dimension token
-# - D: latent dimension (vae_dim)
+# - T: H_lat * W_lat, with H_lat = height // 2**downscales
+# - +1: HW token (dims 0/1 hold H_lat / max_hw, W_lat / max_hw)
+# - D: vae_dim + context dims (from the loaded compressor)
 
-# Create empty latent
-batch_size = 1
-height, width = 512, 512
-tokens = (height // 16) * (width // 16)  # 16x spatial compression
-latent_dim = 128
+# FluxFlowEmptyLatent reads everything from the model
+vae_dim = model.compressor.d_model
+downscales = model.compressor.downscales
+max_hw = model.compressor.max_hw
+ctx = model.compressor.get_context_dims() if hasattr(model.compressor, "get_context_dims") else 0
 
-latent = torch.randn(batch_size, tokens + 1, latent_dim)
-latent[:, -1, 0] = height  # Encode height
-latent[:, -1, 1] = width   # Encode width
+H_lat, W_lat = max(height // 2**downscales, 1), max(width // 2**downscales, 1)
+tokens = torch.randn(batch_size, H_lat * W_lat, vae_dim + ctx)
+hw = torch.zeros(batch_size, 1, vae_dim + ctx)
+hw[:, 0, 0], hw[:, 0, 1] = H_lat / max_hw, W_lat / max_hw
+latent = torch.cat([tokens, hw], dim=1)
 ```
 
 ## ComfyUI Node Development
@@ -524,10 +531,6 @@ ComfyUI-side impact:
 - Sampler downstream wires the per-token tuple directly into the v0.10.0
   flow processor; legacy v060/v070 checkpoints are dispatched via
   `fluxflow.models.pipeline._flow_processor_takes_pertoken_text`.
-
-Plans:
-- Design: `fluxflow-core/docs/plans/2026-06-13-v0.10.0-redesign-design.md`
-- Implementation: `fluxflow-core/docs/plans/2026-06-13-v0.10.0-redesign-implementation.md`
 
 Salvage path for old checkpoints (output keeps narrow legacy VAE widths; see
 [`MIGRATION-v0.10.0-redesign.md`](https://github.com/danny-mio/fluxflow-core/blob/feature/model-v0.10.0/docs/MIGRATION-v0.10.0-redesign.md)) — run from `fluxflow-core`:
