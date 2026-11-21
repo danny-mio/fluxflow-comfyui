@@ -1,5 +1,6 @@
 """Unit tests for FluxFlowModelLoader ComfyUI node."""
 
+import logging
 from unittest.mock import Mock, patch
 
 import pytest
@@ -933,3 +934,76 @@ class TestLoaderRocmSdpaWorkaround:
         with pytest.raises(Exception):
             FluxFlowModelLoader().load_model(checkpoint_path="/nonexistent.safetensors")
         mock_apply.assert_called_once_with(dev)
+
+
+class TestFluxFlowModelLoaderLatentStatsWarning:
+    """Final review M4: post-load warning for uncalibrated / mismatched latent stats."""
+
+    def _v100_ckpt(self, tmp_path, calibrate: bool):
+        from fluxflow.models.v100.vae import FluxCompressor_v100, FluxExpander_v100
+
+        comp = FluxCompressor_v100(d_model=16, downscales=2, max_hw=64)
+        exp = FluxExpander_v100(d_model=16, upscales=2, max_hw=64)
+        if calibrate:
+            for m in (comp, exp):
+                m.set_latent_stats(torch.full((32,), 0.1), torch.full((32,), 2.0))
+        state = {f"diffuser.compressor.{k}": v for k, v in comp.state_dict().items()}
+        state.update({f"diffuser.expander.{k}": v for k, v in exp.state_dict().items()})
+        path = tmp_path / "flxflow_final.safetensors"
+        safetensors.torch.save_file(state, str(path), metadata={"activation_type": "bezier"})
+        return path
+
+    def _load_v100(self, path):
+        mock_text_encoder = Mock()
+        mock_text_encoder.to.return_value = mock_text_encoder
+        v100_config = {
+            "vae_dim": 16,
+            "flow_dim": 32,
+            "downscales": 2,
+            "upscales": 2,
+            "max_hw": 64,
+            "flow_attn_heads": 8,
+            "text_embed_dim": 32,
+            "flow_transformer_layers": 1,
+        }
+        with (
+            patch(f"{_LOADER}.parse_device", return_value=torch.device("cpu")),
+            patch(f"{_LOADER}.AutoTokenizer.from_pretrained", return_value=Mock(pad_token="[PAD]")),
+            patch(f"{_LOADER}.detect_architecture_version", return_value="0.10.0"),
+            patch(f"{_LOADER}.FluxPipeline._detect_config", return_value=v100_config),
+            patch(f"{_LOADER}.BertTextEncoder", return_value=mock_text_encoder),
+            patch(
+                "fluxflow.models.v100.flow.FluxFlowProcessor_v100",
+                return_value=torch.nn.Identity(),
+            ),
+        ):
+            return FluxFlowModelLoader().load_model(checkpoint_path=str(path), device="cpu")
+
+    def test_v100_branch_warns_when_uncalibrated(self, tmp_path, caplog):
+        with caplog.at_level(logging.WARNING, logger=_LOADER):
+            self._load_v100(self._v100_ckpt(tmp_path, calibrate=False))
+        assert "uncalibrated" in caplog.text
+
+    def test_v100_branch_silent_when_calibrated(self, tmp_path, caplog):
+        with caplog.at_level(logging.WARNING, logger=_LOADER):
+            diffuser, _, _, _ = self._load_v100(self._v100_ckpt(tmp_path, calibrate=True))
+        assert diffuser.latent_stats_calibrated
+        assert "uncalibrated" not in caplog.text and "differ" not in caplog.text
+
+    @pytest.mark.parametrize("as_dir", [True, False])
+    def test_versioned_branches_check_after_load(self, tmp_path, as_dir):
+        path = tmp_path if as_dir else self._v100_ckpt(tmp_path, calibrate=False)
+        pipeline = Mock()
+        pipeline.to.return_value = pipeline
+        text_encoder = Mock()
+        text_encoder.to.return_value = text_encoder
+        with (
+            patch(f"{_LOADER}.parse_device", return_value=torch.device("cpu")),
+            patch(f"{_LOADER}.AutoTokenizer.from_pretrained", return_value=Mock(pad_token="[PAD]")),
+            patch(f"{_LOADER}.load_versioned_checkpoint", return_value=pipeline),
+            patch(f"{_LOADER}.BertTextEncoder", return_value=text_encoder),
+            patch(f"{_LOADER}.warn_if_latent_stats_uncalibrated") as warn,
+        ):
+            FluxFlowModelLoader().load_model(checkpoint_path=str(path), device="cpu")
+        warn.assert_called_once()
+        assert warn.call_args.args[0] is pipeline

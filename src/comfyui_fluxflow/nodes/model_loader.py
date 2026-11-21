@@ -24,6 +24,7 @@ from fluxflow.models.pade_activation import (
     TrainablePade,
     compile_pade_activations,
 )
+from fluxflow.models.pipeline import warn_if_latent_stats_uncalibrated
 from fluxflow.models.versioning import load_versioned_checkpoint
 from transformers import AutoTokenizer
 
@@ -295,6 +296,7 @@ class FluxFlowModelLoader:
                 text_encoder.to(**move_kwargs)
                 pipeline.eval()
                 text_encoder.eval()
+                warn_if_latent_stats_uncalibrated(pipeline, logger)
 
                 # Extract version info for display (no .version attribute is
                 # ever set on a loaded FluxPipeline, so re-detect from the
@@ -348,6 +350,7 @@ class FluxFlowModelLoader:
                     text_encoder.to(**move_kwargs)
                     pipeline.eval()
                     text_encoder.eval()
+                    warn_if_latent_stats_uncalibrated(pipeline, logger)
 
                     version = _detect_display_version(checkpoint_path)
                     logger.info(f"Loaded legacy versioned checkpoint (v{version})")
@@ -507,6 +510,7 @@ class FluxFlowModelLoader:
                 text_encoder = text_encoder.to(**move_kwargs)
                 diffuser.eval()
                 text_encoder.eval()
+                warn_if_latent_stats_uncalibrated(diffuser, logger)
 
                 config_info = (
                     f"v0.10.0 auto-detected - VAE: {vae_latent_dim}d, "

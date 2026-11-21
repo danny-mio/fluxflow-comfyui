@@ -38,6 +38,9 @@ Not yet released — work in progress toward v0.10.0.
 - numpy 2.x supported: `numpy<2.0` pin removed; floor raised to `numpy>=1.26.4` (scipy 1.17 requires it).
 
 ### Added
+- Model loader logs a WARNING after loading a v0.10.0 checkpoint whose latent stats
+  are uncalibrated or differ between compressor and expander (core
+  `warn_if_latent_stats_uncalibrated`; needs the matching fluxflow-core).
 - Optional `text_encoder_path` input on `FluxFlowModelLoader`, overriding
   both the auto-discovered sibling `text_encoder.safetensors` and the
   checkpoint's bundled copy.
