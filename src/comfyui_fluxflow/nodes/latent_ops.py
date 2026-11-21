@@ -131,7 +131,8 @@ class FluxFlowVAEEncode:
             (latent,) - Latent packet [B, T+1, D]
 
         Deterministic (mean) encode: v100 compressors default to sample=False in eval.
-        The z half is the raw KL-regularised z (~N(0,I)), not LayerNorm'd.
+        Token rows are normalized by the VAE's calibrated latent_shift/latent_scale
+        (~N(0,I) per channel once calibrated); FluxFlowVAEDecode denormalizes.
         """
         # Convert ComfyUI format to FluxFlow format
         flux_image = comfy_image_to_flux(image)  # [B, C, H, W] in [-1, 1]

@@ -9,11 +9,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 Not yet released — work in progress toward v0.10.0.
 
 ### Changed
+- **Requires fluxflow-core with v0.10.0 latent stats and configurable VAE widths.**
+  The model loader's v0.10.0 auto-detect path now builds compressor/expander at the
+  checkpoint's own widths (`fluxflow.models.v100.infer_vae_widths`), so wide v0.10.0
+  checkpoints load. Pre-rework v0.10.0 checkpoints (affine `ctx_final_norm`, or widths
+  that differ from the model) are rejected by core with `IncompatibleCheckpointError`.
+  `FluxFlowVAEEncode` / `FluxFlowVAEDecode` call `compressor` / `expander` directly,
+  which normalize / denormalize the latent with its stored statistics; no node change.
 - **Model inspector (v100 decoder layout)**: `expander.upscale.layers.N.conv1.0.weight` is
   now read as `[out_ch*5, in_ch, 3, 3]`; `detect_fluxflow_config` adds `upscale_channels`
   (`[(in, out)]` per stage, ordered by index). Legacy ConvTranspose2d (kernel 16) checkpoints
   raise `fluxflow.exceptions.IncompatibleCheckpointError`.
-- `FluxFlowVAEEncode` documents deterministic (mean) encode; z half is raw ~N(0,I).
+- `FluxFlowVAEEncode` documents deterministic (mean) encode.
 
 ### Fixed
 - **ROCm (gfx1151) attention crash**: model loader now calls

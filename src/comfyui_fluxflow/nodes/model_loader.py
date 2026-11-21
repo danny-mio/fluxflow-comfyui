@@ -433,10 +433,21 @@ class FluxFlowModelLoader:
                 logger.info("Detected v0.10.0 features in checkpoint structure")
                 logger.info("Initializing models with v0.10.0 architecture...")
 
+                from fluxflow.models.v100 import infer_vae_widths
                 from fluxflow.models.v100.flow import FluxFlowProcessor_v100
                 from fluxflow.models.v100.vae import FluxCompressor_v100, FluxExpander_v100
 
                 v100_config = FluxPipeline._detect_config(state_dict)
+                # Build the VAE at the checkpoint's own widths; absent (None) -> module default.
+                widths = {
+                    k: v
+                    for k, v in infer_vae_widths(state_dict, prefix="diffuser.").items()
+                    if v is not None
+                }
+                compressor_widths = {k: v for k, v in widths.items() if k == "encoder_channels"}
+                expander_widths = {
+                    k: v for k, v in widths.items() if k in ("decoder_channels", "spade_hidden")
+                }
                 vae_latent_dim = v100_config["vae_dim"]
                 resolved_activation_type = _detect_activation_type(
                     checkpoint_path, force=activation_type
@@ -460,6 +471,7 @@ class FluxFlowModelLoader:
                     downscales=v100_config["downscales"],
                     max_hw=v100_config.get("max_hw", 1024),
                     activation_type=resolved_activation_type,
+                    **compressor_widths,
                 )
                 flow_processor = FluxFlowProcessor_v100(
                     d_model=v100_config["flow_dim"],
@@ -475,6 +487,7 @@ class FluxFlowModelLoader:
                     upscales=v100_config.get("upscales", v100_config["downscales"]),
                     max_hw=v100_config.get("max_hw", 1024),
                     activation_type=resolved_activation_type,
+                    **expander_widths,
                 )
 
                 diffuser = FluxPipeline(compressor, flow_processor, expander)

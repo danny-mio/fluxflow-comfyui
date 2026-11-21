@@ -797,6 +797,73 @@ class TestFluxFlowModelLoaderActivationTypeV100Branch:
         assert mock_compressor_cls.call_args.kwargs["activation_type"] == "bezier"
 
 
+class TestFluxFlowModelLoaderV100Widths:
+    """v0.10.0 auto-detect branch builds the VAE at the checkpoint's own widths."""
+
+    def test_wide_state_dict_builds_and_loads(self, tmp_path):
+        from fluxflow.models.v100.vae import FluxCompressor_v100, FluxExpander_v100
+
+        enc, dec, hid = [24, 40], [40, 24], [64, 48]
+        src_comp = FluxCompressor_v100(d_model=16, downscales=2, max_hw=64, encoder_channels=enc)
+        src_exp = FluxExpander_v100(
+            d_model=16, upscales=2, max_hw=64, decoder_channels=dec, spade_hidden=hid
+        )
+        state = {f"diffuser.compressor.{k}": v for k, v in src_comp.state_dict().items()}
+        state.update({f"diffuser.expander.{k}": v for k, v in src_exp.state_dict().items()})
+        checkpoint_path = tmp_path / "flxflow_final.safetensors"
+        safetensors.torch.save_file(
+            state, str(checkpoint_path), metadata={"activation_type": "bezier"}
+        )
+
+        mock_text_encoder = Mock()
+        mock_text_encoder.to.return_value = mock_text_encoder
+        v100_config = {
+            "vae_dim": 16,
+            "flow_dim": 32,
+            "downscales": 2,
+            "upscales": 2,
+            "max_hw": 64,
+            "flow_attn_heads": 8,
+            "text_embed_dim": 32,
+            "flow_transformer_layers": 1,
+        }
+
+        with (
+            patch(
+                "comfyui_fluxflow.nodes.model_loader.parse_device",
+                return_value=torch.device("cpu"),
+            ),
+            patch(
+                "comfyui_fluxflow.nodes.model_loader.AutoTokenizer.from_pretrained",
+                return_value=Mock(pad_token="[PAD]"),
+            ),
+            patch(
+                "comfyui_fluxflow.nodes.model_loader.detect_architecture_version",
+                return_value="0.10.0",
+            ),
+            patch(
+                "comfyui_fluxflow.nodes.model_loader.FluxPipeline._detect_config",
+                return_value=v100_config,
+            ),
+            patch(
+                "comfyui_fluxflow.nodes.model_loader.BertTextEncoder",
+                return_value=mock_text_encoder,
+            ),
+            patch(
+                "fluxflow.models.v100.flow.FluxFlowProcessor_v100",
+                return_value=torch.nn.Identity(),
+            ),
+        ):
+            diffuser, _, _, _ = FluxFlowModelLoader().load_model(
+                checkpoint_path=str(checkpoint_path), device="cpu"
+            )
+
+        assert diffuser.compressor.stage_channels[1:] == enc
+        loaded = diffuser.state_dict()
+        for key, value in state.items():
+            assert torch.equal(loaded[key.removeprefix("diffuser.")], value), key
+
+
 _LOADER = "comfyui_fluxflow.nodes.model_loader"
 _RESULT = (Mock(), Mock(), Mock(), "info")
 
